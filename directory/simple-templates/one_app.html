@@ -1,0 +1,37 @@
+<div class="app">
+
+{% if app.icon_url %}
+<img src="{{ app.icon_url }}" class="app-icon" />
+{% endif %}
+
+<div class="app-name"><a href="{{ app.url }}">{{ app.name }}</a></div>
+
+{% if app.manifest_developer %}
+<div class="app-developer">
+by
+{% if app.manifest_developer.get('url') %}
+  <a href="{{ app.manifest_developer['url'] }}">
+  {{ app.manifest_developer.get('name') or app.manifest_developer['url'] }}
+  </a>
+{% else %}
+  {{ app.manifest_developer['name'] }}
+{% endif %}
+</div>
+{% endif %}
+
+{% if app.description %}
+<div class="app-description">
+  {{ format_description(app.description) }}
+</div>
+{% elif force_description %}
+<div class="app-description">
+  This application has no description.
+</div>
+{% endif %}
+
+<div class="install">
+  <button type="button" class="install-button"
+   appurl="{{ app.manifest_url }}" apporigin="{{ app.origin }}">Install!</button>
+</div>
+
+</div>

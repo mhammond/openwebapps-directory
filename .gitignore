@@ -1,0 +1,6 @@
+*.sqlite
+bin/
+include/
+lib/
+*.egg-info
+

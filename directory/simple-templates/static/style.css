@@ -1,0 +1,51 @@
+body {
+  font-family: sans-serif;
+}
+
+.app {
+  margin-bottom: 1em;
+  border: 1px solid #000;
+  padding: 0.5em;
+  clear: both;
+  overflow: hidden;
+}
+
+.view-app .app {
+  border: none;
+}
+
+.app-icon {
+  float: right;
+  margin: 0.2em;
+}
+
+.app-name {
+  font-size: 110%;
+  font-weight: bold;
+}
+
+.app-name a {
+  text-decoration: none;
+}
+
+.app-developer {
+  font-size: 90%;
+  color: #555;
+}
+
+div.error {
+  border: 2px solid #ff0;
+  background-color: #900;
+  color: #fff;
+  display: inline;
+  padding: 2px;
+}
+
+button.error {
+  background-color: #f00;
+}
+
+#search {
+  width: 100%;
+  margin-bottom: 1em;
+}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ app.name }}{% endblock %}
+
+{% block content %}
+
+{{ app_html(app, force_description=True) }}
+
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block page_title %}Add an application{% endblock %}
+
+{% block content %}
+<form action="/add" method="POST">
+{% if errors %}
+<div class="errors">
+  <ul>
+  {% if errors.get('content_type') %}
+    <li>The Content-Type of the resource at {{ errors['url'] }} was
+    <code>{{ errors['content_type'] }}</code> but <code>{{
+    errors['content_type_wanted'] }}</code> is required.
+    </li>
+  {% endif %}
+  {% if errors.get('unicode') %}
+    <li>There is an error with your unicode:
+    {{ errors['unicode'] }}</li>
+  {% endif %}
+  {% if errors.get('json_parse') %}
+    <li>The resource is not valid JSON; while parsing I got the
+    error <code class="error">{{ errors['json_parse'] }}</code>
+    </li>
+  {% endif %}
+  {% if errors.get('error_log') %}
+    {% for item in errors['error_log'] %}
+      <li>{{ item }}</li>
+    {% endfor %}
+  {% endif %}
+  </ul>
+
+  The manifest I fetched:
+
+  <pre>{{ errors['raw_data'] }}</pre>
+</div>
+{% endif %}
+
+{% if check_message %}
+<div class="success">
+  {{ check_message }}
+</div>
+{% endif %}
+
+Enter your manifest's URL to add or update:<br>
+
+<input type="text" name="manifest_url"
+ value="{{ req.params.get('manifest_url') or ''}}">
+<button type="submit">Add my app!</button>
+<label for="dontadd">
+<input type="checkbox" name="dontadd" id="dontadd"
+ {% if req.params.get('dontadd') %}checked="checked"{% endif %}>
+Check my manifest, but don't add the app to the directory yet</label>
+
+</form>
+
+<div>
+  <p><strong>
+  What do I need to do to make my web application into an installable
+  open web application?
+  </strong></p>
+
+  <p>I'm glad you asked.  It's easy!  You need to create an
+  <i>application manifest</i> which is a simple JSON document
+  describing your application.  <a
+  href="https://developer.mozilla.org/en/OpenWebApps/The_Manifest">The
+  manifest documentation</a> is the most important to get started, but
+  <a href="https://developer.mozilla.org/en/OpenWebApps">there's
+  more</a> if you are interested in the concept.
+  </p>
+
+  <p><strong>
+  I hate forms, is there an API?
+  </strong></p>
+
+  <p>Sure!  Just do <code>POST {{ req.url }}?manifest_url={url}</code>.
+  Or using curl:<br>
+  <code>&nbsp; curl -X POST --header 'Accept: text/plain'
+  {{ req.url }}?manifest_url={url}</code>
+  </p>
+
+  <p>If you have any errors the request will fail and the errors will
+  be printed out.  If you add <code>&amp;dontadd=1</code> then you
+  will get an error or success message, but the application won't
+  actually be added. </p>
+
+</div>
+
+
+
+
+{% endblock %}

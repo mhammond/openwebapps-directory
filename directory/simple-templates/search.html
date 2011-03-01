@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+{% if q %}
+  Search: {{ q }}
+{% else %}
+  Search {{ app_config.site_title }}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div id="search">
+  <form action="/search" method="GET">
+  <input type="text" name="q" style="20em" value="{{ q or '' }}">
+  <button type="submit">Search</button>
+</div>
+
+{% if q %}
+
+{% if results %}
+
+<div id="results">
+
+  {% for app in results %}
+    {{ app_html(app) }}
+  {% endfor %}
+
+</div>
+
+{% else %}
+
+<div id="noresults">
+  There were no results for your query.
+</div>
+
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

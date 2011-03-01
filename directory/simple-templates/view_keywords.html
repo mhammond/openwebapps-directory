@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block page_title %}Category: {{ keyword }}{% endblock %}
+
+{% block content %}
+<h1>Category: {{ keyword }}</h1>
+
+{% for app in apps %}
+
+{{ app_html(app) }}
+
+{% endfor %}
+
+{% endblock %}

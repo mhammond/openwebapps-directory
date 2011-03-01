@@ -1,0 +1,12 @@
+There was an error in adding {{ errors['url'] }} :
+
+{% for name, value in sorted(errors.items()) %}
+{% if isinstance(value, list) %}
+{{ name }}:
+{% for item in value %}
+  {{ item | safe }}
+{% endfor %}
+{% else %}
+{{ name }}: {{ value | safe }}
+{% endif %}
+{% endfor %}
