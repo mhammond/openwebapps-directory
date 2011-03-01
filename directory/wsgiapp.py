@@ -40,10 +40,12 @@ class WSGIApp(object):
     map.connect('search', '/search', method='search')
     map.connect('keyword', '/keyword/{keyword}', method='view_keywords')
 
-    def __init__(self, db, search_paths=None, site_title='Application Directory'):
+    def __init__(self, db, search_paths=None,
+                 site_title=None,
+                 jsapi_location=None):
         self.setup_db(db)
         if not search_paths:
-            search_paths = get_search_paths(paths)
+            search_paths = get_search_paths(search_paths)
         self.jinja_loader = jinja2.FileSystemLoader(search_paths)
         self.jinja_env = jinja2.Environment(
             trim_blocks=True,
@@ -51,7 +53,8 @@ class WSGIApp(object):
             loader=self.jinja_loader,
             auto_reload=True,
             )
-        self.site_title = site_title
+        self.site_title = site_title or 'Application Directory'
+        self.jsapi_location = jsapi_location or 'https://myapps.mozillalabs.com'
 
     def setup_db(self, db):
         self.db = db
@@ -203,6 +206,11 @@ class Handler(object):
                 self.render('errors.txt', errors=errors),
                 content_type='text/plain',
                 status=400)
+        elif check_message and 'text/html' not in self.req.accept:
+            return Response(
+                check_message,
+                content_type='text/plain',
+                status=200)
         return self.render('add', errors=errors, check_message=check_message)
 
     def view_app(self, origin, slug):
@@ -232,7 +240,9 @@ class Handler(object):
 
 
 def make_app(global_conf=None, db=None, search_paths=None,
-             include_static=False, debug=False):
+             include_static=False, debug=False,
+             site_title=None,
+             jsapi_location=None):
     if not db:
         db = 'sqlite:///directory.sqlite'
     if search_paths:
@@ -245,7 +255,8 @@ def make_app(global_conf=None, db=None, search_paths=None,
     if isinstance(include_static, basestring):
         from paste.deploy.converters import asbool
         include_static = asbool(include_static)
-    app = WSGIApp(db, search_paths)
+    app = WSGIApp(db, search_paths, site_title=site_title,
+                  jsapi_location=jsapi_location)
     if include_static:
         from paste.urlparser import StaticURLParser
         from paste.urlmap import URLMap

@@ -12,10 +12,8 @@
     {% block content %}{% endblock %}
 
     {% block site_js %}
-      <script src="http://localhost/jsapi/include.js"
-       type="text/javascript">
-        navigator.apps.setRepoOrigin('http://localhost');
-      </script>
+      <script src="{{ app_config.jsapi_location }}/jsapi/include.js"
+       type="text/javascript"></script>
       <script src="/static/site.js" type="text/javascript"></script>
     {% endblock %}
   </body>
