@@ -1,9 +1,9 @@
-= Open Web Apps Reference Directory
+# Open Web Apps Reference Directory
 
 This is an example of how you might create an application directory
 for listing Open Web Applications.  It's meant to be a simple implementation that may be suitable to build on, or may just be an example you can consider as you decide how to design your own system.
 
-== How The Application Is Setup
+## How The Application Is Setup
 
 There are only a couple pieces:
 
@@ -17,13 +17,13 @@ There are only a couple pieces:
 
 - Static files are in `directory/{template_dir}/static/` -- they go with the look of the site.  There's very little Javascript.
 
-== Dependencies and Libraries
+## Dependencies and Libraries
 
 The dependencies are all in the `vendor/` directory.  This directory has to be added to `sys.path` to run the application; you can do that with `$PYTHONPATH` or using [virtualenv](http://virtualenv.openplans.org).
 
 This code expects you to use Python 2.6.  Python 2.7 should work fine, 2.5 probably won't work (just because it's not tested), and Python 3.x *will not* work.
 
-== Management tasks
+## Management tasks
 
 Some notes if you want to actually extend this code.
 
