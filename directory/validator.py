@@ -1,38 +1,10 @@
+"""Validates the manifest files"""
 from directory.util import json
 
 __all__ = ['content_type', 'validate']
 
 ## The expected content-type:
 content_type = 'application/x-web-app-manifest+json'
-
-
-def is_string(o):
-    return isinstance(o, basestring)
-
-
-def is_dict(o):
-    return isinstance(o, dict)
-
-
-def is_path(s):
-    if not s.startswith('/'):
-        return False
-    return True
-
-
-def is_origin_match(s):
-    if s == '*':
-        return True
-    ## FIXME: do better origin check
-    return True
-
-
-def extra_keys(d, allowed):
-    extra = []
-    for key in sorted(d):
-        if key not in allowed:
-            extra.append(key)
-    return extra
 
 
 def validate(manifest):
@@ -175,3 +147,34 @@ def validate(manifest):
                     'The widget.height property must be [10-1000]')
 
     return errors
+
+
+## A bunch of helpers:
+
+def is_string(o):
+    return isinstance(o, basestring)
+
+
+def is_dict(o):
+    return isinstance(o, dict)
+
+
+def is_path(s):
+    if not s.startswith('/'):
+        return False
+    return True
+
+
+def is_origin_match(s):
+    if s == '*':
+        return True
+    ## FIXME: do better origin check
+    return True
+
+
+def extra_keys(d, allowed):
+    extra = []
+    for key in sorted(d):
+        if key not in allowed:
+            extra.append(key)
+    return extra

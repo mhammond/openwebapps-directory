@@ -1,3 +1,4 @@
+"""Persistence for applications"""
 from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean
 from sqlalchemy import and_, or_, desc
 from sqlalchemy.ext.declarative import declarative_base
@@ -12,6 +13,7 @@ Base = declarative_base()
 
 
 class Application(Base):
+    """Represents one application in the directory"""
 
     __tablename__ = 'application'
     id = Column(Integer, primary_key=True)
@@ -26,19 +28,19 @@ class Application(Base):
     slug = Column(String, nullable=False)
     description = Column(String)
     icon_url = Column(String)
+    # These are represented by |keyword1|keyword2|:
     keywords_denormalized = Column(String)
     featured = Column(Boolean, default=False)
     featured_sort = Column(Float)
     featured_start = Column(DateTime)
     featured_end = Column(DateTime)
-    hidden = Column(Boolean, default=False)
     added = Column(DateTime, default=datetime.now)
     last_updated = Column(DateTime, onupdate=datetime.now)
 
     def __init__(self, origin, manifest_json, manifest_url, manifest_fetched,
                  name, description, icon_url, keywords=None,
                  featured=False, featured_sort=None, featured_start=None,
-                 featured_end=None, hidden=False):
+                 featured_end=None):
         self.origin = origin
         self.manifest_json = manifest_json
         self.manifest_url = manifest_url
@@ -204,6 +206,10 @@ class Application(Base):
 
 
 class Keyword(Base):
+    """Represents available keywords (keywords some application has used)
+
+    This doesn't map to applications, it only is used to generate the
+    list of all keywords."""
 
     __tablename__ = 'keyword'
     word = Column(String, primary_key=True)
