@@ -1,0 +1,121 @@
+.app-large {
+  margin-bottom: 1em;
+  padding: 0.5em;
+  clear: both;
+  overflow: hidden;
+}
+
+.view-app .app {
+  border: none;
+}
+
+.app-large img.app-icon {
+  float: right;
+  margin: 1em;
+}
+
+.app-large .app-name {
+  font-size: 110%;
+  font-weight: bold;
+}
+
+.app-large .app-name a {
+  text-decoration: none;
+}
+
+.app-large .app-developer {
+  font-size: 90%;
+  color: #555;
+}
+
+div.error {
+  border: 2px solid #ff0;
+  background-color: #900;
+  color: #fff;
+  display: inline;
+  padding: 2px;
+}
+
+button.error {
+  background-color: #f00;
+}
+
+fieldset {
+  padding: 1em;
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+.browse ul li {
+  display: inline;
+}
+
+#search {
+  width: 100%;
+  margin-bottom: 1em;
+}
+
+#search-form {
+  display: inline;
+  float: right;
+}
+
+#search-form button {
+  padding: 2px;
+}
+
+#search-form input {
+  width: 5em;
+  height: 1.5em;
+}
+
+/* Highlight navigation buttons: */
+body.index #home-link {
+  font-weight: bold;
+}
+
+body.all_keywords #keyword-link, body.view_keywords #keyword-link {
+  font-weight: bold;
+}
+
+body.add #add-link {
+  font-weight: bold;
+}
+
+body.about #about-link {
+  font-weight: bold;
+}
+
+## from appdir.css
+
+.app-box img {
+    border-radius: 10px 10px 10px 10px;
+    float: left;
+    height: 120px;
+    margin: 8px;
+    width: 120px;
+}
+#projectContent .app-box {
+    background-color: #DDDDDD;
+    border-radius: 10px 10px 10px 10px;
+    margin-bottom: 0.5em;
+    margin-top: 0.5em;
+    padding: 0;
+    position: relative;
+}
+#projectContent .app-box div.app-name {
+    font-size: 1.2em;
+    margin-left: 0.4em;
+    margin-top: 4em;
+    width: 150px;
+}
+#projectContent .app-box div.app-developer {
+    font-size: 0.8em;
+    margin-left: 0.6em;
+    width: 150px;
+}
+#projectContent .app-box div {
+    float: left;
+}

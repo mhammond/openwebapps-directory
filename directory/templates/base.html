@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block page_title %}Mozilla : Web Applications{% endblock %}</title>
+    <title>{% block page_title %}{{ app_config.site_title }}{% endblock %}</title>
     <meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; width=device-width;">
     <link rel="stylesheet" href="/static/css/960.css" type="text/css" media="screen">
-    <link rel="stylesheet" href="/static/css/directory.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="/static/directory.css" type="text/css" media="screen">
     <link rel="shortcut icon" type="image/ico" href="/static/i/favicon.ico">
 
-    <script src="/static/js/jquery.1.5.min.js" type="text/javascript" charset="utf-8"></script>
-    <!-- <script src="/static/js/jquery.isotope.min.js" type="text/javascript" charset="utf-8"></script> -->
-    <script src="/static/js/labs.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+        document.createElement("section");
+        document.createElement("article");
+        document.createElement("footer");
+        document.createElement("header");
+        document.createElement("hgroup");
+        document.createElement("nav");
+    </script>
 
 </head>
 
@@ -18,47 +23,47 @@
     <div id="wrapper">
 
         <header class="clearfix ">
-            <a class="home" href="#"><img src="i/mozillaLogo.png" alt="Mozilla"></a>
+            <a class="home" href="/FIXME"><img src="/static/i/mozillaLogo.png" alt="Mozilla"></a>
         </header>
 
         <section id="about" class="clearfix ">
             <div class="doubleColumn">
                 <h1>{% block page_title_header %}{{ self.page_title() }}{% endblock %}</h1>
                 <article class="elevator">
-                    <p>Web Applications are applications that run on <u style="color:#CF32A5">any device</u>, and can be distributed through <u style="color:#9A32CF">any store</u> or <u style="color:#4732CF">directly</u> by the developer.</p>
+                    <p>{% block blurb %}A collection of Open Web Apps{% endblock %}</p>
                 </article>
-                <!-- <div class="videoToggle">
-                    <button class="play sans"><img src="i/video.png"> Watch the video</button>
-                </div> -->
             </div>
         </section>
 
         <hr class="shadow">
 
-        <section id="video" class="clearfix">
-            <div class="tripleColumn videos">
-                <video class="mainVideo" controls="controls">
-                    <source type='video/webm' src="v/neueMail.webm">
-                    <source type='video/mp4' src="v/neueMail.mov">
-                </video>
-            </div>
+        <section id="navigation" class="clearfix">
+            {% block navigation %}
+            <a id="home-link" href="/">Home</a>
+            | <a id="keyword-link" href="/keyword/">Categories</a>
+            | <a id="add-link" href="/add">Add An App</a>
+            | <a id="about-link" href="/about">About</a>
+              <form id="search-form" method="GET" action="/search">
+             <input type="text" name="q" value="{{ req.params.get('q') or '' }}">
+             <button type="submit">search</button>
+            </form>
+
+            {% endblock %}
         </section>
 
         <section id="projectContent">
-            <div id="contentWrap" class="clearfix">
-              <div class="contentBlock clearfix">
-              {% block content %}{% endblock %}
-              </div>
-            </div>
-
+            {% block content %}{% endblock %}
         </section>
+
+        <hr>
+
 
     </div> <!-- wrapper -->
 
     <footer class="clearfix sans">
         <ul>
             <li><a href="http://groups.google.com/group/mozilla-labs">Forum</a></li>
-            <li><a href="#">Contact Us</a></li>
+            <li><a href="/FIXME">Contact Us</a></li>
             <li><a href="http://www.mozilla.com/en-US/privacy-policy.html">Privacy Policy</a></li>
             <li><a href="http://www.mozilla.com/en-US/about/legal.html">Legal Notices</a></li>
         </ul>
@@ -66,6 +71,13 @@
             <p>Copyright &copy; 2011 Mozilla. All rights reserved.</p>
         </div>
     </footer>
+
+
+    <script src="/static/js/jquery.1.5.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/static/js/labs.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/static/site.js" type="text/javascript"></script>
+    <script src="{{ app_config.jsapi_location }}/jsapi/include.js"
+            type="text/javascript"></script>
 
 </body>
 </html>
