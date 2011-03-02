@@ -1,5 +1,5 @@
 """Persistence for applications"""
-from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, UnicodeText, Unicode
 from sqlalchemy import and_, or_, not_, desc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -17,19 +17,19 @@ class Application(Base):
 
     __tablename__ = 'application'
     id = Column(Integer, primary_key=True)
-    origin = Column(String, nullable=False, unique=True)
+    origin = Column(String(120), nullable=False, unique=True)
     # Derivative of origin (used for lookup):
-    origin_key = Column(String, nullable=False, unique=True)
-    manifest_json = Column(String, nullable=False)
+    origin_key = Column(String(120), nullable=False, unique=True)
+    manifest_json = Column(UnicodeText, nullable=False)
     manifest_fetched = Column(DateTime)
-    manifest_url = Column(String)
-    name = Column(String, nullable=False)
+    manifest_url = Column(UnicodeText)
+    name = Column(UnicodeText, nullable=False)
     # Derivative of name (used for URLs, *not* lookup):
-    slug = Column(String, nullable=False)
-    description = Column(String)
-    icon_url = Column(String)
+    slug = Column(UnicodeText, nullable=False)
+    description = Column(UnicodeText)
+    icon_url = Column(UnicodeText)
     # These are represented by |keyword1|keyword2|:
-    keywords_denormalized = Column(String)
+    keywords_denormalized = Column(UnicodeText)
     featured = Column(Boolean, default=False)
     featured_sort = Column(Float)
     featured_start = Column(DateTime)
@@ -212,8 +212,8 @@ class Keyword(Base):
     list of all keywords."""
 
     __tablename__ = 'keyword'
-    word = Column(String, primary_key=True)
-    description = Column(String)
+    word = Column(Unicode(100), primary_key=True)
+    description = Column(UnicodeText)
     hidden = Column(Boolean, default=False)
 
     def __init__(self, word):
