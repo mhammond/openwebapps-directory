@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block page_title %}Admin Keywords{% endblock %}
+
+{% block content %}
+
+<form action="" method="POST">
+
+<table width="100%">
+  <tr>
+    <th>Word</th>
+    <th>Hidden?</th>
+    <th>Description (can contain HTML)</th>
+  </tr>
+
+  {% for keyword in keywords %}
+  <tr>
+    <td>
+      <code>{{ keyword.word }}</code>
+    </td>
+    <td>
+      <input type="checkbox" name="keyword_hide_{{ keyword.word }}"
+       {% if keyword.hidden %}checked="checked"{% endif %}>
+    </td>
+    <td width="90%">
+      <input type="text" name="keyword_description_{{ keyword.word }}"
+       value="{{ keyword.description or '' }}" style="width: 100%">
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<button type="submit">Update!</button>
+</form>
+
+{% endblock %}

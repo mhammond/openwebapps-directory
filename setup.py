@@ -22,6 +22,7 @@ This implements a simple directory of 'Open Web Applications'.
           'SQLAlchemy',
           'Routes',
           'DevAuth',
+          'python-dateutil',
       ],
       entry_points="""
       [paste.app_factory]

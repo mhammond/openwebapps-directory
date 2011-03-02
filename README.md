@@ -23,6 +23,14 @@ The dependencies are all in the `vendor/` directory.  This directory has to be a
 
 This code expects you to use Python 2.6.  Python 2.7 should work fine, 2.5 probably won't work (just because it's not tested), and Python 3.x *will not* work.
 
+## Administration
+
+There's no logins, and everything is very simple; there's no big admin system, roles, etc.
+
+You can however do a little bit of maintenance.  The "users" are listed in a [htpasswd](http://httpd.apache.org/docs/2.3/programs/htpasswd.html) style file (you can create it with `htpasswd`).  Any user in this file will be an administration.  Then go to `/.mozilla/login` and you can login. Once logged in you can add `/admin` to an application to change the featured status, and to delete the application.
+
+You can also edit the keywords, hiding some (if they are unwanted) or adding descriptions.  Go to `/admin/keywords` for this form.
+
 ## Management tasks
 
 Some notes if you want to actually extend this code.

@@ -12,6 +12,7 @@ from directory.util import make_slug, get_template_search_paths, json
 import urllib2
 import jinja2
 from datetime import datetime
+import dateutil
 
 
 class WSGIApp(object):
@@ -20,9 +21,10 @@ class WSGIApp(object):
     map.connect('home', '/', method='index')
     map.connect('add', '/add', method='add')
     map.connect('view_app', '/app/{origin}/{slug}', method='view_app')
-    map.connect('admin_app', '/app/{origin}/{slug}/admin', method='admin_app')
     map.connect('search', '/search', method='search')
     map.connect('keyword', '/keyword/{keyword}', method='view_keywords')
+    map.connect('admin_app', '/app/{origin}/{slug}/admin', method='admin_app')
+    map.connect('keyword_admin', '/admin/keywords', method='admin_keywords')
 
     def __init__(self, db, search_paths=None,
                  site_title=None,
@@ -104,17 +106,26 @@ class Handler(object):
                 list=list,
                 app_html=self.app_html,
                 format_description=format_description,
-                template_class=template_class))
+                template_class=template_class,
+                format_date=self.format_date))
         return tmpl.render(**args)
 
-    def get_app(self, origin_key):
-        app = model.Application.get(origin_key)
+    def get_app(self, origin_key, session=None):
+        app = model.Application.get(origin_key, session=session)
         if app is None:
             raise exc.HTTPNotFound('No such application')
         return app
 
     def app_html(self, app, **options):
         return jinja2.Markup(self.render('one_app', app=app, **options))
+
+    def is_admin(self):
+        return bool(self.req.environ.get('x-wsgiorg.developer_user'))
+
+    def format_date(self, date):
+        if not date:
+            return ''
+        return date.strftime('%Y-%m-%d %H:%M:%S %Z')
 
     ## Actual views:
 
@@ -213,9 +224,56 @@ class Handler(object):
         app = self.get_app(origin)
         return self.render('view_app', app=app)
 
-    def admin_app(self, id, slug):
-        app = self.get_app(id)
+    def admin_app(self, origin, slug):
+        if not self.is_admin():
+            raise exc.HTTPNotFound
+        app = self.get_app(origin, session=self.session)
+        if self.req.method == 'POST':
+            p = self.req.params
+            if p.get('delete'):
+                self.session.delete(app)
+                self.session.commit()
+                return 'Deleted!'
+            app.featured = bool(p.get('featured'))
+            if p.get('featured_sort'):
+                app.featured_sort = float(p['featured_sort'])
+            else:
+                app.featured_sort = None
+            if p.get('featured_start'):
+                app.featured_start = dateutil.parse(p['featured_start'])
+            else:
+                app.featured_start = None
+            if p.get('featured_end'):
+                app.featured_end = dateutil.parse(p['featured_end'])
+            else:
+                app.featured_end = None
+            self.session.add(app)
+            self.session.commit()
+            return exc.HTTPFound(app.url + '/admin')
         return self.render('admin_app', app=app)
+
+    def admin_keywords(self):
+        if not self.is_admin():
+            raise exc.HTTPNotFound
+        s = self.session
+        keywords = s.query(model.Keyword).order_by(model.Keyword.word).all()
+        by_word = dict(
+            (k.word, k) for k in keywords)
+        if self.req.method == 'POST':
+            # Since unchecked items don't show up, first we unhide everything
+            for k in keywords:
+                k.hidden = False
+            for name, value in self.req.params.items():
+                if name.startswith('keyword_hide_'):
+                    word = name[len('keyword_hide_'):]
+                    by_word[word].hidden = True
+                elif name.startswith('keyword_description_'):
+                    word = name[len('keyword_description_'):]
+                    by_word[word].description = value.strip() or None
+            for k in keywords:
+                s.add(k)
+            s.commit()
+        return self.render('admin_keywords', keywords=keywords)
 
     def search(self):
         q = self.req.GET.get('q')

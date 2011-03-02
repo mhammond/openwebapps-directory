@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block page_title %}Admin: {{ app.name }}{% endblock %}
+
+{% block content %}
+
+Admin for <a href="{{ app.url }}">{{ app.name }} ({{ app.origin }})</a>
+
+<form action="" method="POST">
+<table>
+  <tr>
+    <td>Manifest fetched:</td>
+    <td>{{ format_date(app.manifest_fetched) }}</td>
+  </tr>
+  <tr>
+    <td>From:</td>
+    <td>{{ app.manifest_url }}</td>
+  </tr>
+  <tr>
+    <td><label for="featured">Featured:</label></td>
+    <td><input type="checkbox" name="featured" {% if app.featured %}checked="checked"{% endif %} id="featured"></td>
+  </tr>
+  <tr>
+    <td>Featured sort value (float):</td>
+    <td><input type="text" name="featured_sort" value="{{ app.featured_sort or '' }}"></td>
+  </tr>
+  <tr>
+    <td>Start featuring (date):</td>
+    <td><input type="text" name="featured_start" value="{{ app.featured_start or '' }}"></td>
+  </tr>
+  <tr>
+    <td>End featuring (date):</td>
+    <td><input type="text" name="featured_end" value="{{ app.featured_end or ''}}"></td>
+  </tr>
+</table>
+
+<button type="submit">Update</button> <button type="submit" name="delete" value="delete">Delete!</button>
+</pre>
+</form>
+
+{% endblock %}

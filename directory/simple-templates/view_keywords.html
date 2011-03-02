@@ -5,6 +5,12 @@
 {% block content %}
 <h1>Category: {{ keyword }}</h1>
 
+{% if description %}
+<div class="keyword-description">
+  {{ description | safe }}
+</div>
+{% endif %}
+
 {% for app in apps %}
 
 {{ app_html(app) }}
