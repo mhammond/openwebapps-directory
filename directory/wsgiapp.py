@@ -45,7 +45,10 @@ class WSGIApp(object):
     def setup_db(self, db):
         self.db = db
         from sqlalchemy import create_engine
-        self.engine = create_engine(self.db)
+        kw = {}
+        if self.db.startswith('mysql:'):
+            kw['pool_recycle'] = 3600
+        self.engine = create_engine(self.db, **kw)
         model.Session.configure(bind=self.engine)
         model.Base.metadata.create_all(self.engine)
 
