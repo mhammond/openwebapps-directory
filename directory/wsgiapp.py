@@ -127,62 +127,13 @@ class Handler(object):
 
     def add(self):
         errors = {}
-        params = self.req.params
         check_message = None
         if self.req.method == 'POST':
-            url = params['manifest_url']
-            resp = urllib2.urlopen(url)
-            content_type = resp.info().getheader('content-type')
-            if content_type != validator.content_type:
-                errors['content_type'] = content_type
-                errors['content_type_wanted'] = validator.content_type
-            raw_data = resp.read()
-            ## FIXME: should try to figure out the encoding better
-            if raw_data.startswith(codecs.BOM_UTF8):
-                raw_data = raw_data[len(codecs.BOM_UTF8):]
-            try:
-                raw_data = raw_data.decode('utf8')
-            except UnicodeDecodeError, e:
-                errors['unicode'] = e
-                raw_data = raw_data.decode('utf8', 'replace')
-            manifest = None
-            try:
-                manifest = json.loads(raw_data.strip())
-            except Exception, e:
-                errors['json_parse'] = unicode(e)
-            if manifest:
-                error_log = validator.validate(manifest)
-                if error_log:
-                    errors['error_log'] = error_log
-            if errors:
-                errors['url'] = url
-                errors['raw_data'] = raw_data
-                errors['manifest'] = manifest
-            if not errors:
-                origin = get_origin(url)
-                app = model.Application.by_origin(origin, session=self.session)
-                if self.req.params.get('dontadd'):
-                    if app is None:
-                        check_message = 'Your new application is ready and valid!'
-                    else:
-                        check_message = 'Your application update is ready and valid!'
-                else:
-                    if app is None:
-                        app = model.Application.from_manifest(
-                            manifest, datetime.now(), url, origin,
-                            session=self.session)
-                    else:
-                        app.update_from_manifest(
-                            manifest, datetime.now(), url, origin,
-                            session=self.session)
-                    url = urlparse.urljoin(self.req.url, app.url)
-                    return Response(
-                        url, location=app.url, status=302,
-                        content_type='text/plain')
-        extra_errors = []
-        errors = clean_unicode(errors, extra_errors.append)
-        if extra_errors:
-            errors['unicode'] = extra_errors
+            check_message, errors, resp = self._add_application()
+            if resp is not None:
+                return resp
+        ## FIXME: instead of this text/html test, should I just have
+        ## another flag?
         if errors and 'text/html' not in self.req.accept:
             # text/plain then!
             return Response(
@@ -195,6 +146,68 @@ class Handler(object):
                 content_type='text/plain',
                 status=200)
         return self.render('add', errors=errors, check_message=check_message)
+
+    def _add_application(self):
+        url = self.req.params['manifest_url']
+        manifest, raw_data, errors = self._get_manifest(url)
+        if errors:
+            errors['url'] = url
+            errors['raw_data'] = raw_data
+            errors['manifest'] = manifest
+            extra_errors = []
+            errors = clean_unicode(errors, extra_errors.append)
+            if extra_errors:
+                errors['unicode'] = extra_errors
+            return None, errors, None
+        if not errors:
+            origin = get_origin(url)
+            app = model.Application.by_origin(origin, session=self.session)
+            if self.req.params.get('dontadd'):
+                if app is None:
+                    check_message = 'Your new application is ready and valid!'
+                else:
+                    check_message = 'Your application update is ready and valid!'
+                return check_message, errors, None
+            if app is None:
+                app = model.Application.from_manifest(
+                    manifest, datetime.now(), url, origin,
+                    session=self.session)
+            else:
+                app.update_from_manifest(
+                    manifest, datetime.now(), url, origin,
+                    session=self.session)
+            url = urlparse.urljoin(self.req.url, app.url)
+            resp = Response(
+                url, location=app.url, status=302,
+                content_type='text/plain')
+            return None, None, resp
+
+    def _get_manifest(self, manifest_url):
+        errors = {}
+        resp = urllib2.urlopen(manifest_url)
+        content_type = resp.info().getheader('content-type')
+        if content_type != validator.content_type:
+            errors['content_type'] = content_type
+            errors['content_type_wanted'] = validator.content_type
+        raw_data = resp.read()
+        ## FIXME: should try to figure out the encoding better
+        if raw_data.startswith(codecs.BOM_UTF8):
+            raw_data = raw_data[len(codecs.BOM_UTF8):]
+        try:
+            raw_data = raw_data.decode('utf8')
+        except UnicodeDecodeError, e:
+            errors['unicode'] = e
+            raw_data = raw_data.decode('utf8', 'replace')
+        manifest = None
+        try:
+            manifest = json.loads(raw_data.strip())
+        except Exception, e:
+            errors['json_parse'] = unicode(e)
+        if manifest:
+            error_log = validator.validate(manifest)
+            if error_log:
+                errors['error_log'] = error_log
+        return manifest, raw_data, errors
 
     def view_app(self, origin, slug):
         app = self.get_app(origin)
