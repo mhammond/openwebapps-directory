@@ -6,9 +6,9 @@ setup(name='openwebapps-directory',
       version=version,
       description="A simple reference implementation of an Open Web Application directory",
       long_description="""\
+This implements a simple directory of 'Open Web Applications'.
 """,
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-      keywords='',
+      keywords='wsgi openwebapps',
       author='Ian Bicking',
       author_email='ianb@mozilla.com',
       url='http://apps.mozillalabs.com',
@@ -21,9 +21,10 @@ setup(name='openwebapps-directory',
           'Jinja2',
           'SQLAlchemy',
           'Routes',
+          'DevAuth',
       ],
       entry_points="""
       [paste.app_factory]
-      main = directory.wsgiapp:make_app
+      main = directory.configure:make_app
       """,
       )

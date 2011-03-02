@@ -3,11 +3,7 @@ from sqlalchemy import and_, or_, desc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
-from directory.util import make_slug, get_icon, origin_to_key
-try:
-    import simplejson as json
-except ImportError:
-    import json
+from directory.util import make_slug, get_icon, origin_to_key, json
 from datetime import datetime
 
 

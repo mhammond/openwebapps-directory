@@ -7,27 +7,11 @@ from webob import Response
 from routes import Mapper, URLGenerator
 from directory import model
 from directory import validator
-from directory.util import get_origin, format_description, clean_unicode, make_slug
+from directory.util import get_origin, format_description, clean_unicode
+from directory.util import make_slug, get_template_search_paths, json
 import urllib2
 import jinja2
-try:
-    import simplejson as json
-except ImportError:
-    import json
 from datetime import datetime
-
-
-def get_search_paths(paths):
-    if not paths:
-        paths = []
-    paths = list(paths)
-    paths.append(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                     'templates'))
-    paths.append(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                     'simple-templates'))
-    return paths
 
 
 class WSGIApp(object):
@@ -45,7 +29,7 @@ class WSGIApp(object):
                  jsapi_location=None):
         self.setup_db(db)
         if not search_paths:
-            search_paths = get_search_paths(search_paths)
+            search_paths = get_template_search_paths(search_paths)
         self.jinja_loader = jinja2.FileSystemLoader(search_paths)
         self.jinja_env = jinja2.Environment(
             trim_blocks=True,
@@ -65,7 +49,6 @@ class WSGIApp(object):
 
     @wsgify
     def __call__(self, req):
-        __traceback_hide__ = 'before'
         results = self.map.routematch(environ=req.environ)
         if not results:
             return exc.HTTPNotFound()
@@ -237,53 +220,3 @@ class Handler(object):
             return exc.HTTPNotFound('No keyword found')
         return self.render('view_keywords', apps=apps, keyword=keyword,
                            description=k.description)
-
-
-def make_app(global_conf=None, db=None, search_paths=None,
-             include_static=False, debug=False,
-             site_title=None,
-             jsapi_location=None):
-    if not db:
-        db = 'sqlite:///directory.sqlite'
-    if search_paths:
-        if isinstance(search_paths, basestring):
-            search_paths = [s.strip() for s in search_paths.splitlines()
-                            if s.strip()]
-    else:
-        search_paths = []
-    search_paths = get_search_paths(search_paths)
-    if isinstance(include_static, basestring):
-        from paste.deploy.converters import asbool
-        include_static = asbool(include_static)
-    app = WSGIApp(db, search_paths, site_title=site_title,
-                  jsapi_location=jsapi_location)
-    if include_static:
-        from paste.urlparser import StaticURLParser
-        from paste.urlmap import URLMap
-        from paste.cascade import Cascade
-        static_apps = []
-        for path in search_paths:
-            static_apps.append(StaticURLParser(
-                os.path.join(path, 'static')))
-        static_app = Cascade(static_apps)
-        mapping = URLMap()
-        mapping['/static'] = static_app
-        mapping[''] = app
-        app = mapping
-    if isinstance(debug, basestring):
-        from paste.deploy.converters import asbool
-        debug = asbool(debug)
-    if debug:
-        try:
-            from weberror.evalexception import EvalException
-        except ImportError:
-            try:
-                from werkzeug.debug import DebuggedApplication
-            except ImportError:
-                from paste.evalexception import EvalException
-                app = EvalException(app)
-            else:
-                app = DebuggedApplication(app, evalex=True)
-        else:
-            app = EvalException(app)
-    return app

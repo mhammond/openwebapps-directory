@@ -1,9 +1,8 @@
-try:
-    import simplejson as json
-except ImportError:
-    import json
+from directory.util import json
 
 __all__ = ['content_type', 'validate']
+
+## The expected content-type:
 content_type = 'application/x-web-app-manifest+json'
 
 

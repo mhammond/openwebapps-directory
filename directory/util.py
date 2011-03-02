@@ -1,22 +1,43 @@
+"""
+Random little functions
+"""
+import os
 import re
 import urlparse
 import cgi
 from jinja2 import Markup
+## We export this import because simplejson (which has speedups) is
+## generally preferrable to the API-compatible builtin json module
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
-repl_chars = re.compile(r"[ _]")
-bad_chars = re.compile(r"[^a-z0-9-]")
-rep_chars = re.compile(r"--+")
+__all__ = ['make_slug', 'get_icon', 'get_origin', 'origin_to_key',
+           'format_description', 'clean_unicode', 'get_template_search_paths',
+           'json']
+
+
+_repl_chars = re.compile(r"[ _]")
+_bad_chars = re.compile(r"[^a-z0-9-]")
+_rep_chars = re.compile(r"--+")
 
 
 def make_slug(name):
+    """Turns a free-form name into a 'slug', a simple name containing
+    only lower-case characters and -"""
     name = name.lower()
-    name = repl_chars.sub('-', name)
-    name = bad_chars.sub('', name)
-    name = rep_chars.sub('-', name)
+    name = _repl_chars.sub('-', name)
+    name = _bad_chars.sub('', name)
+    name = _rep_chars.sub('-', name)
     return name
 
 
 def get_icon(icons, origin):
+    """Given a list of icons, pick out the best icon and return
+    its (fully formed) URL
+
+    Right now only grabs the largest icon"""
     if not icons:
         return None
     ## Otherwise we just want the largest?
@@ -28,6 +49,7 @@ def get_icon(icons, origin):
 
 
 def get_origin(url):
+    """Given a URL calculate its origin"""
     parsed = urlparse.urlsplit(url)
     ## FIXME: normalize ports:
     origin_parts = (parsed[0], parsed[1], '', '', '')
@@ -35,6 +57,9 @@ def get_origin(url):
 
 
 def origin_to_key(origin):
+    """Kind of a sluggification of origins, removing ``http://``,
+    changing ``https://`` to ``https_``, and changing ``:port`` to
+    ``_port``"""
     ## FIXME: should make sure it's ASCII too
     origin = origin.lower()
     parsed = urlparse.urlsplit(origin)
@@ -61,6 +86,7 @@ def origin_to_key(origin):
 
 
 def format_description(d):
+    """Formats an application description to HTML."""
     ## FIXME: handle leading whitespace
     d = cgi.escape(d)
     d = d.replace('\n', '<br />\n')
@@ -91,3 +117,17 @@ def clean_unicode(v, reporter):
             ## Or use v.decode('string_escape')?
             v = v.decode('utf8', 'replace')
     return v
+
+
+def get_template_search_paths(paths):
+    """Add the default search paths to a set of paths"""
+    if not paths:
+        paths = []
+    paths = list(paths)
+    paths.append(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                     'templates'))
+    paths.append(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                     'simple-templates'))
+    return paths
