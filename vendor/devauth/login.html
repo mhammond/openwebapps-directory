@@ -1,0 +1,46 @@
+<html>
+<head>
+<title>Developer Login</title>
+</head>
+
+<body>
+<h1>Developer Login</h1>
+
+{{if req.cookies.get('__devauth')}}
+<div>
+  <a href="{{req.application_url}}{{middleware.login_mountpoint}}/logout?back={{req.url|url}}">
+    Logout</a>
+</div>
+{{endif}}
+
+{{if msg}}
+<div style="border: 2px solid #000; background-color: #ddf; padding: 1em">
+  {{msg|html}}
+</div>
+{{endif}}
+
+<form action="{{req.path_url}}" method="POST">
+
+<input type="hidden" name="back" value="{{back}}">
+<table>
+  <tr>
+    <td>Username:</td>
+    <td><input type="text" name="username" value="{{req.params.get('username')}}"
+         style="width: 15em" id="username">
+    </td>
+  </tr>
+  <tr>
+    <td>Password:</td>
+    <td><input type="password" name="password" style="width: 15em"></td>
+  </tr>
+</table>
+<input type="submit" value="Login">
+</table>
+
+</form>
+
+<script type="text/javascript">
+document.getElementById('username').focus();
+</script>
+
+</body> </html>

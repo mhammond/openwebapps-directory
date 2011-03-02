@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>Invalid IP</title>
+</head>
+
+<body>
+<h1>Invalid IP</h1>
+
+<div>
+  
+  Your IP address -- {{req.remote_addr}}
+  {{if 'X-Forwarded-For' in req.headers}}
+  forwarded from {{req.headers['X-Forwarded-For']}}
+  {{endif}}
+  -- is not allowed.
+
+</div>
+  
+</body> </html>
