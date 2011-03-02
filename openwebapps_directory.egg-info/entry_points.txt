@@ -1,0 +1,4 @@
+
+      [paste.app_factory]
+      main = directory.configure:make_app
+      

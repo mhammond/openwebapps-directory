@@ -1,0 +1,12 @@
+Metadata-Version: 1.0
+Name: openwebapps-directory
+Version: 0.1
+Summary: A simple reference implementation of an Open Web Application directory
+Home-page: http://apps.mozillalabs.com
+Author: Ian Bicking
+Author-email: ianb@mozilla.com
+License: MPL
+Description: This implements a simple directory of 'Open Web Applications'.
+        
+Keywords: wsgi openwebapps
+Platform: UNKNOWN

@@ -1,0 +1,170 @@
+Metadata-Version: 1.0
+Name: DevAuth
+Version: 0.1.2
+Summary: Authentication for developer access to applications
+Home-page: http://devauth.openplans.org
+Author: Ian Bicking
+Author-email: ianb@openplans.org
+License: MIT
+Description: Introduction
+        ------------
+        
+        Many debugging tools provide through-the-web functionality that is
+        private, important to secure, and orthogonal to any other
+        authentication on the system.  DevAuth is a tool to provide a single
+        way to restrict access to these tools.
+        
+        DevAuth is only an authentication system, it does not itself provide
+        any tools.  It is *only* intended for developers, and is not an
+        authentication system that is usable in general-purpose applications.
+        
+        This is written for `the wsgi.org developer_auth spec
+        <http://wsgi.org/wsgi/Specifications/developer_auth>`_.
+        
+        Authentication
+        --------------
+        
+        There are two means of authentication that DevAuth uses:
+        username/password authentication, and IP-based restrictions.  Ideally
+        you would use both of these for higher security.  It may also be
+        reasonable to use an IP restriction of 127.0.0.1 for local
+        development.
+        
+        Username/password authentication can be done with a function that
+        checks the username and password (like ``valid_login =
+        password_checker(username, password)``), or with an Apache
+        htpasswd-style file.
+        
+        IP based authentication uses ``deny`` and ``allow``.  If you give IP
+        addresses that are denied, these are entirely rejected; if you give IP
+        addresses that are allowed, then only requests from these IP addresses
+        are allowed.  ``deny`` takes precedence over ``allow``.  These can be
+        lists of IP addresses (with commas), `IP masks
+        <http://wiki.xtronics.com/index.php/IP_Subnet_Masks>`_ (like
+        ``192.168.0.0/24``) or ranges like ``192.168.1<->3`` (meaning
+        192.168.{1-3}.*).
+        
+        Any change in the developer's IP address will require re-login.
+        Logins may expire (if so configured) and require re-login.
+        
+        Usage/Configuration
+        -------------------
+        
+        The basic usage of DevAuth is like::
+        
+          from devauth import DevAuth
+        
+          app = ... instantiate main app ...
+          wrapped_app = DevAuth(app, ...configuration...)
+        
+        The configuration is keyword arguments:
+        
+        ``allow``:
+            The allowed IP addresses.  This can be a string or a list of
+            strings.  See `Authentication`_ for the allowed formats.  This
+            defaults to ``"127.0.0.1"``, i.e., only local access is allowed.
+            None means allow any IP address.  Note both
+            ``environ['REMOTE_ADDR']`` and ``environ['HTTP_X_FORWARDED_FOR']``
+            are checked, and both must pass.
+        
+        ``deny``:
+            Similar to ``allow``, except any requests from IP addresses
+            matching these IP addresses will not be allowed to login.
+        
+        ``password_file``:
+            This is a filename, the location of a password file as generated
+            by `htpasswd
+            <http://httpd.apache.org/docs/2.0/programs/htpasswd.html>`_.  You
+            can create this file like::
+        
+                $ htpasswd -s devauth.htpasswd username
+                New password: 
+                Re-type new password: 
+                Adding password for user username
+        
+            You must use the argument ``-c`` to first create the file (without
+            it an entry will be appended).  ``-s`` hashes your password with
+            SHA; any hash supported by htpasswd will work, but SHA is better
+            than the default.
+        
+        ``password_checker``:
+            This is a function to check the username and password.  A very
+            simple implementation might be::
+        
+                def password_checker(username, password):
+                    return username == 'admin' and password='topsecret'
+        
+        ``secret_file``, ``secret``:
+            DevAuth uses a server-side secret to sign the login cookies.  You
+            can keep this secret in a file or provide it directly.  If you
+            give it a filename and the file doesn't exist, a file will be
+            created with a randomly generated secret (it is advantageous to
+            keep it in a file because it will persist over restarts, so
+            developers won't have to re-login).
+        
+            The default is to keep the secret in ``$TMP/devauth.txt``, where
+            ``$TMP`` is replaced with the appropriate system temporary
+            directory.
+        
+        ``logger``:
+            A `logging <http://docs.python.org/library/logging.html>`_ logger
+            instance, or the name of a logger.  If not given a logger is
+            created with the name ``DevAuth``.  This logs logins, failed
+            logins, problems with signed keys, etc.
+        
+        ``expiration``:
+            The number of minutes the login is valid for (None means no
+            expiration).  This is counted from the time of login, so even if
+            you maintain activity the login will still expire.
+        
+        ``login_mountpoint``:
+            This is the URL where the login will take place, it defaults to
+            ``/.devauth``.  Then the login is at ``/.devauth/login`` and the
+            logout is at ``/.devauth/logout``.  Only these two URLs are
+            intercepted, so you can still have things at other URLs like
+            ``/.devauth/logs`` (if you do this, you'll probably replace
+            ``/.devauth`` with something specific to your application).
+        
+        Paste Deploy Configuration
+        --------------------------
+        
+        You can use this with `Paste Deploy configuration
+        <http://pythonpaste.org/deploy/>`_ (as used in Pylons and Repoze).  It
+        looks something like::
+        
+          [filter:devauth]
+          use = egg:DevAuth
+          allow = 127.0.0.1
+                  192.168.0.0/16
+          # Toby's computer:
+          # (I hate him so much!)
+          deny = 192.168.0.23
+          # File created with htpasswd:
+          password_file = %(here)s/developers.htpasswd
+          # Login expires after 1 hour:
+          # So Toby can't hijack my session by using my computer.
+          # (I hate him so much!)
+          expiration = 60
+          # You'll login in at /.devauth/login (the default):
+          login_mountpoint = /.devauth
+        
+          [app:myapp]
+          blah blah blah
+        
+          [pipeline:main]
+          pipeline = devauth myapp
+        
+        For Tool Developers
+        -------------------
+        
+        If you want to check if a developer is logged in, look for
+        ``environ['x-wsgiorg.developer_user']``.  This key will have the
+        username as a value.  If the page is for developers only, then return
+        ``403 Forbidden``.
+Keywords: wsgi debug tool
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: Paste
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware
