@@ -1,0 +1,91 @@
+/*
+
+INFO:     Mobile stylesheet
+
+*/
+
+body #wrapper {
+    width: 320px;
+}
+
+/* typography */
+
+
+
+/* columns */
+
+body #grid {
+    width: 320px;
+    margin-left: -160px;
+}
+
+body .tripleColumn,
+body .doubleColumn {
+    width: 300px;
+}
+
+body .tripleColumn img,
+body .doubleColumn img,
+body .tripleColumn video,
+body .doubleColumn video {
+    max-width: 300px;
+}
+
+/* content */
+
+body header a.home {
+    text-align: left;
+}
+
+    body a.more {
+        font-size: 12px;
+    }
+    
+body section#about {
+    padding: 0 0 20px;
+    background-image: url("../i/header_sml.png");
+    min-height: 0;
+}
+
+body .bgImage {
+    background-image: none;
+}
+
+body section#projectContent .contentBlock {
+    padding: 0;
+}
+    
+body .singleColumn.second {
+    display: none;
+}
+    
+body #video.visible {
+    height: 189px;
+}
+    
+body section.post p {
+    font-size: 14px;
+    line-height: 21px;
+    margin: 0 0 21px 0;
+}
+
+body section.post h3 {
+    line-height: 21px;
+}
+
+body #hackList .hackHeader {
+    margin: 0 0 10px 0;
+    text-align: left;
+}
+
+body #hackList hr {
+    width: 300px;
+}
+
+body footer {
+    width: 320px;
+}
+    
+body footer p {
+    text-align: left;
+}    

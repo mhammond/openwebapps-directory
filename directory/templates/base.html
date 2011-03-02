@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block page_title %}Mozilla : Web Applications{% endblock %}</title>
+    <meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; width=device-width;">
+    <link rel="stylesheet" href="/static/css/960.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="/static/css/directory.css" type="text/css" media="screen">
+    <link rel="shortcut icon" type="image/ico" href="/static/i/favicon.ico">
+
+    <script src="/static/js/jquery.1.5.min.js" type="text/javascript" charset="utf-8"></script>
+    <!-- <script src="/static/js/jquery.isotope.min.js" type="text/javascript" charset="utf-8"></script> -->
+    <script src="/static/js/labs.js" type="text/javascript" charset="utf-8"></script>
+
+</head>
+
+<body class="apps {{ template_class }}">
+    <div id="grid"></div>
+    <div id="wrapper">
+
+        <header class="clearfix ">
+            <a class="home" href="#"><img src="i/mozillaLogo.png" alt="Mozilla"></a>
+        </header>
+
+        <section id="about" class="clearfix ">
+            <div class="doubleColumn">
+                <h1>{% block page_title_header %}{{ self.page_title() }}{% endblock %}</h1>
+                <article class="elevator">
+                    <p>Web Applications are applications that run on <u style="color:#CF32A5">any device</u>, and can be distributed through <u style="color:#9A32CF">any store</u> or <u style="color:#4732CF">directly</u> by the developer.</p>
+                </article>
+                <!-- <div class="videoToggle">
+                    <button class="play sans"><img src="i/video.png"> Watch the video</button>
+                </div> -->
+            </div>
+        </section>
+
+        <hr class="shadow">
+
+        <section id="video" class="clearfix">
+            <div class="tripleColumn videos">
+                <video class="mainVideo" controls="controls">
+                    <source type='video/webm' src="v/neueMail.webm">
+                    <source type='video/mp4' src="v/neueMail.mov">
+                </video>
+            </div>
+        </section>
+
+        <section id="projectContent">
+            <div id="contentWrap" class="clearfix">
+              <div class="contentBlock clearfix">
+              {% block content %}{% endblock %}
+              </div>
+            </div>
+
+        </section>
+
+    </div> <!-- wrapper -->
+
+    <footer class="clearfix sans">
+        <ul>
+            <li><a href="http://groups.google.com/group/mozilla-labs">Forum</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="http://www.mozilla.com/en-US/privacy-policy.html">Privacy Policy</a></li>
+            <li><a href="http://www.mozilla.com/en-US/about/legal.html">Legal Notices</a></li>
+        </ul>
+        <div class="singleColumn">
+            <p>Copyright &copy; 2011 Mozilla. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+/*
+
+INFO:     Tablet stylesheet
+
+*/
+
+body #wrapper {
+    width: 640px;
+}
+
+/* typography */
+
+body h2 {
+    font-size: 18px;
+    line-height: 24px;
+}
+
+body .elevator {
+    font-size: 14px;
+    line-height: 21px;
+    width: 300px;
+    padding: 0;
+}
+
+body .cssColumn {
+    -webkit-column-count: 1;
+       -moz-column-count: 1;
+            column-count: 1;
+            
+    -webkit-column-gap: 0;
+       -moz-column-gap: 0;
+            column-gap: 0;
+}
+
+/* columns */
+
+body #grid {
+    width: 640px;
+    margin-left: -320px;
+}
+
+body .tripleColumn {
+    width: 620px;
+}
+
+body .tripleColumn img,
+body .tripleColumn video {
+    max-width: 620px;
+}
+
+/* content */
+
+body header nav {
+    width: 300px;
+}
+    body a.more {
+        display: block;
+        text-indent: 0;
+    }
+    
+body .singleColumn.third {
+    display: none;
+}
+
+body #video.visible {
+    height: 369px;
+}
+
+body #hackList p {
+    width: 300px;
+}
+
+body #hackList hr {
+    width: 620px;
+}
+
+body footer {
+    width: 640px;
+}
+    
+body footer ul {
+    width: 300px;
+}
