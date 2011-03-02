@@ -41,17 +41,23 @@
 </div>
 {% endif %}
 
-Enter your manifest's URL to add or update:<br>
+<fieldset>
+<legend>Add or update an application</legend>
 
 <input type="text" name="manifest_url"
  value="{{ req.params.get('manifest_url') or ''}}">
 <button type="submit">Add my app!</button>
+<br>
 <label for="dontadd">
 <input type="checkbox" name="dontadd" id="dontadd"
  {% if req.params.get('dontadd') %}checked="checked"{% endif %}>
-Check my manifest, but don't add the app to the directory yet</label>
+Check and validate my manifest, but don't add the app to the directory yet</label>
+
+</fieldset>
 
 </form>
+
+<h2>More information...</h2>
 
 <div>
   <p><strong>
