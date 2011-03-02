@@ -1,6 +1,6 @@
 """Persistence for applications"""
 from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean
-from sqlalchemy import and_, or_, desc
+from sqlalchemy import and_, or_, not_, desc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -214,6 +214,7 @@ class Keyword(Base):
     __tablename__ = 'keyword'
     word = Column(String, primary_key=True)
     description = Column(String)
+    hidden = Column(Boolean, default=False)
 
     def __init__(self, word):
         self.word = word
@@ -249,4 +250,4 @@ class Keyword(Base):
     def all_words(cls, session=None):
         if session is None:
             session = Session()
-        return session.query(cls).order_by(cls.word)
+        return session.query(cls).filter(not_(cls.hidden)).order_by(cls.word)
