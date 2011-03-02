@@ -2,6 +2,21 @@
 
 {% block page_title %}{{ app.name }}{% endblock %}
 
+{% block blurb %}
+{% if app.manifest_developer %}
+<div class="app-developer">
+by
+{% if app.manifest_developer.get('url') %}
+  <a href="{{ app.manifest_developer['url'] }}">
+  {{ app.manifest_developer.get('name') or app.manifest_developer['url'] }}
+  </a>
+{% else %}
+  {{ app.manifest_developer['name'] }}
+{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 
 {{ app_html(app, force_description=True) }}

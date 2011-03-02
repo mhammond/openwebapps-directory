@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block page_title %}Categories{% endblock page_title %}
+
+{% block content %}
+
+<div class="browse">
+  <ul>
+  {% for keyword in keywords %}
+    <li><a href="/keyword/{{keyword}}">{{keyword}}</a></li>
+  {% endfor %}
+  </ul>
+</div>
+
+{% endblock %}

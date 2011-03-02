@@ -3,15 +3,14 @@
 {% block page_title %}{{ app_config.site_title }}{% endblock page_title %}
 
 {% block content %}
-<h1>{{ site_title }}</h1>
 
 {% if featured_apps %}
 
-<h2>Featured Applications:</h2>
+<h2>Featured Applications</h2>
 
 <div class="featured">
   {% for app in featured_apps %}
-    {{ app_html(app) }}
+    {{ app_html(app, box=True) }}
   {% endfor %}
 </div>
 
@@ -19,29 +18,20 @@
 
 <h2>Browse</h2>
 
-<div>
+<div class="browse">
+  <ul>
   {% for keyword in keywords %}
-    <a href="/keyword/{{keyword}}">{{keyword}}</a>
+    <li><a href="/keyword/{{keyword}}">{{keyword}}</a></li>
   {% endfor %}
+  </ul>
 </div>
 
 <h2>Recently Added Applications</h2>
 
 <div>
   {% for app in recent_apps %}
-    {{ app_html(app) }}
+    {{ app_html(app, box=True) }}
   {% endfor %}
 </div>
-
-<h2>Search</h2>
-
-<div>
-  <form action="/search" method="GET">
-  <input type="text" name="q">
-  <button type="submit">Search</button>
-  </form>
-</div>
-
-<h2><a href="/add">Add a new app</a></h2>
 
 {% endblock %}

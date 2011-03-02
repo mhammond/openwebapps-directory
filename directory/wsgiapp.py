@@ -21,8 +21,10 @@ class WSGIApp(object):
     map.connect('home', '/', method='index')
     map.connect('add', '/add', method='add')
     map.connect('view_app', '/app/{origin}/{slug}', method='view_app')
+    map.connect('about', '/about', method='about')
     map.connect('search', '/search', method='search')
     map.connect('keyword', '/keyword/{keyword}', method='view_keywords')
+    map.connect('keywords', '/keyword/', method='all_keywords')
     map.connect('admin_app', '/app/{origin}/{slug}/admin', method='admin_app')
     map.connect('keyword_admin', '/admin/keywords', method='admin_keywords')
 
@@ -294,3 +296,10 @@ class Handler(object):
             return exc.HTTPNotFound('No keyword found')
         return self.render('view_keywords', apps=apps, keyword=keyword,
                            description=k.description)
+
+    def all_keywords(self):
+        keywords = [k.word for k in model.Keyword.all_words()]
+        return self.render('all_keywords', keywords=keywords)
+
+    def about(self):
+        return self.render('about')

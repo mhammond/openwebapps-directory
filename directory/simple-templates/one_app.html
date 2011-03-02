@@ -1,7 +1,7 @@
-<div class="app">
+<div class="app {% if box %}app-box singleColumn{% else %}app-large{% endif %}">
 
 {% if app.icon_url %}
-<img src="{{ app.icon_url }}" class="app-icon" />
+<a href="{{ app.url }}"><img src="{{ app.icon_url }}" class="app-icon" /></a>
 {% endif %}
 
 <div class="app-name"><a href="{{ app.url }}">{{ app.name }}</a></div>
@@ -19,7 +19,7 @@ by
 </div>
 {% endif %}
 
-{% if app.description %}
+{% if app.description and not box %}
 <div class="app-description">
   {{ format_description(app.description) }}
 </div>
