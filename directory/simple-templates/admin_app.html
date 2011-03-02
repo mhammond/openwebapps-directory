@@ -32,6 +32,11 @@ Admin for <a href="{{ app.url }}">{{ app.name }} ({{ app.origin }})</a>
     <td>End featuring (date):</td>
     <td><input type="text" name="featured_end" value="{{ app.featured_end or ''}}"></td>
   </tr>
+  <tr>
+    <td>Override keywords (comma-separate):</td>
+    <td><input type="text" name="keywords"
+         value="{{','.join(app.keywords)}}"></td>
+  </tr>
 </table>
 
 <button type="submit">Update</button> <button type="submit" name="delete" value="delete">Delete!</button>

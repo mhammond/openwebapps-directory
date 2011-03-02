@@ -4,6 +4,18 @@
 
 {% block content %}
 
+{% if trimmed %}
+<div>
+Removed:
+  <ul>
+  {% for word in trimmed %}
+    <li>{{ word }}</li>
+  {% endfor %}
+  </ul>
+
+<a href="/admin/keywords">Refresh list</a>
+{% else %}
+
 <form action="" method="POST">
 
 <table width="100%">
@@ -31,6 +43,9 @@
 </table>
 
 <button type="submit">Update!</button>
+<button type="submit" name="trim" value="1">Trim unused</button>
 </form>
+
+{% endif %}
 
 {% endblock %}

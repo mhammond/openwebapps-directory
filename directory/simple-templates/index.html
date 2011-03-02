@@ -34,4 +34,8 @@
   {% endfor %}
 </div>
 
+{% if handler.is_admin() %}
+<a href="/admin/keywords">admin keywords</a>
+{% endif %}
+
 {% endblock %}

@@ -252,6 +252,11 @@ class Handler(object):
                 app.featured_end = dateutil.parse(p['featured_end'])
             else:
                 app.featured_end = None
+            keywords = p.get('keywords') or ''
+            keywords = [k.strip() for k in keywords.split(',')
+                        if k.strip()]
+            app.keywords = keywords
+            model.Keyword.add_words(keywords, session=self.session)
             self.session.add(app)
             self.session.commit()
             return exc.HTTPFound(app.url + '/admin')
@@ -262,6 +267,7 @@ class Handler(object):
             raise exc.HTTPNotFound
         s = self.session
         keywords = s.query(model.Keyword).order_by(model.Keyword.word).all()
+        trimmed = None
         by_word = dict(
             (k.word, k) for k in keywords)
         if self.req.method == 'POST':
@@ -277,8 +283,11 @@ class Handler(object):
                     by_word[word].description = value.strip() or None
             for k in keywords:
                 s.add(k)
+            if self.req.params.get('trim'):
+                trimmed = model.Keyword.trim_keywords(self.session)
             s.commit()
-        return self.render('admin_keywords', keywords=keywords)
+        return self.render('admin_keywords', keywords=keywords,
+                           trimmed=trimmed)
 
     def search(self):
         q = self.req.GET.get('q')

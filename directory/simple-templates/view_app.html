@@ -21,4 +21,8 @@ by
 
 {{ app_html(app, force_description=True) }}
 
+{% if handler.is_admin() %}
+<a href="{{ app.url }}/admin">admin</a>
+{% endif %}
+
 {% endblock %}

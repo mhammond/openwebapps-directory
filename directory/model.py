@@ -119,8 +119,6 @@ class Application(Base):
         keywords = manifest.get('experimental', {}).get('keywords')
         if keywords:
             self.keywords = keywords
-        else:
-            self.keywords = ['uncategorized']
         self.set_slug()
         if session:
             session.add(self)
@@ -251,3 +249,18 @@ class Keyword(Base):
         if session is None:
             session = Session()
         return session.query(cls).filter(not_(cls.hidden)).order_by(cls.word)
+
+    @classmethod
+    def trim_keywords(cls, session=None):
+        this_session = session or Session()
+        unused = dict(
+            (k.word, k) for k in this_session.query(cls))
+        for app in this_session.query(Application):
+            for word in app.keywords:
+                if word in unused:
+                    del unused[word]
+        for obj in unused.values():
+            this_session.delete(obj)
+        if session is None:
+            this_session.commit()
+        return unused
