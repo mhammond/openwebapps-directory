@@ -27,7 +27,7 @@ This code expects you to use Python 2.6.  Python 2.7 should work fine, 2.5 proba
 
 Some notes if you want to actually extend this code.
 
-To set everythign up nicely run:
+To set everything up nicely for development run:
 
 - Create a virtualenv environment at this root
 - Link `vendor/add-path.pth.link` to `lib/python2.6/site-packages/add-path.pth`
