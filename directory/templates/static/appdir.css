@@ -128,6 +128,12 @@ form#search-form button {
 
 ul.keywords li {
     display: inline;
+    font-size: 120%;
+    text-decoration: underline;
+}
+
+h2 {
+    margin-top: 1em;
 }
 
 .error {
