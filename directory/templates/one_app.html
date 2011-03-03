@@ -1,0 +1,38 @@
+<div class="app {% if box %}singleColumn{% else %}app-large{% endif %}"
+     data-appurl="{{ app.manifest_url }}" data-apporigin="{{ app.origin }}">
+
+<div class="button installable">
+  <img src="/static/i/download.png">
+  Install
+</div>
+
+{% if app.icon_url %}
+<a href="{{ app.url }}"><img class="icon" src="{{ app.icon_url }}" /></a>
+{% endif %}
+
+<div class="name"><a href="{{ app.url }}">{{ app.name }}</a></div>
+
+{% if app.manifest_developer %}
+<div class="attribution">
+by
+{% if app.manifest_developer.get('url') %}
+  <a href="{{ app.manifest_developer['url'] }}">
+  {{ app.manifest_developer.get('name') or app.manifest_developer['url'] }}
+  </a>
+{% else %}
+  {{ app.manifest_developer['name'] }}
+{% endif %}
+</div>
+{% endif %}
+
+{% if app.description and not box %}
+<div class="description">
+  {{ format_description(app.description) }}
+</div>
+{% elif force_description %}
+<div class="description">
+  This application has no description.
+</div>
+{% endif %}
+
+</div>

@@ -20,6 +20,7 @@ class WSGIApp(object):
     map = Mapper()
     map.connect('home', '/', method='index')
     map.connect('add', '/add', method='add')
+    map.connect('build', '/build', method='build')
     map.connect('view_app', '/app/{origin}/{slug}', method='view_app')
     map.connect('about', '/about', method='about')
     map.connect('search', '/search', method='search')
@@ -137,7 +138,7 @@ class Handler(object):
     def index(self):
         featured_apps = model.Application.featured_apps().all()
         keywords = [k.word for k in model.Keyword.all_words()]
-        recent_apps = model.Application.recent(4).all()
+        recent_apps = model.Application.recent(6).all()
         return self.render('index', featured_apps=featured_apps,
                            keywords=keywords, recent_apps=recent_apps)
 
@@ -224,6 +225,43 @@ class Handler(object):
             if error_log:
                 errors['error_log'] = error_log
         return manifest, raw_data, errors
+
+    def build(self):
+        p = self.req.params
+        manifest = None
+        if 'url' in p and 'has_manifest' not in p:
+            manifest = self._guess_manifest(p['url'])
+        elif 'has_manifest' in p:
+            pass
+        return self.render('build', manifest=manifest)
+
+    def _guess_manifest(self, url):
+        import lxml.html
+        page = lxml.html.parse(url)
+        name = page.cssselect('title')
+        if name:
+            name = name[0].text_content()
+        else:
+            name = 'unknown'
+        keywords = page.cssselect('meta[name=keywords]')
+        if keywords:
+            keywords = [k.strip() for k in keywords.get('content', '').split(',')]
+        else:
+            keywords = []
+        desc = page.cssselect('meta[name=description]')
+        if desc:
+            desc = desc.get('content').strip()
+        else:
+            desc = ''
+        ## FIXME: get favicon
+        manifest = {
+            'name': name,
+            'description': desc,
+            'launch_path': urlparse.urlsplit(url).path,
+            'icons': {},
+            'experimental': {'keywords': keywords},
+            }
+        return manifest
 
     def view_app(self, origin, slug):
         app = self.get_app(origin)

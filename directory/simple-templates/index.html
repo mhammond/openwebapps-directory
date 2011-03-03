@@ -19,7 +19,7 @@
 <h2>Browse</h2>
 
 <div class="browse">
-  <ul>
+  <ul class="keywords">
   {% for keyword in keywords %}
     <li><a href="/keyword/{{keyword}}">{{keyword}}</a></li>
   {% endfor %}
@@ -29,13 +29,16 @@
 <h2>Recently Added Applications</h2>
 
 <div>
-  {% for app in recent_apps %}
-    {{ app_html(app, box=True) }}
-  {% endfor %}
+{% for app in recent_apps %}
+  {{ app_html(app, box=True) }}
+{% endfor %}
 </div>
 
 {% if handler.is_admin() %}
-<a href="/admin/keywords">admin keywords</a>
+<hr>
+<div>
+<a href="/admin/keywords">Admin: Keywords</a>
+</div>
 {% endif %}
 
 {% endblock %}
