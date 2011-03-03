@@ -3,9 +3,6 @@
 <head>
     <title>{% block page_title %}{{ app_config.site_title }}{% endblock %}</title>
     <meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; width=device-width;">
-    <link rel="stylesheet" href="/static/css/960.css" type="text/css" media="screen">
-    <link rel="stylesheet" href="/static/directory.css" type="text/css" media="screen">
-    <link rel="shortcut icon" type="image/ico" href="/static/i/favicon.ico">
 
     <script type="text/javascript">
         document.createElement("section");
@@ -16,68 +13,66 @@
         document.createElement("nav");
     </script>
 
+    <link rel="stylesheet" href="/static/css/960.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="/static/appdir.css" type="text/css" media="screen">
+    <link rel="shortcut icon" type="image/ico" href="/static/i/favicon.ico">
 </head>
 
 <body class="apps {{ template_class }}">
-    <div id="grid"></div>
     <div id="wrapper">
 
-        <header class="clearfix ">
-            <a class="home" href="/FIXME"><img src="/static/i/mozillaLogo.png" alt="Mozilla"></a>
+        <header class="clearfix textShadow">
+            <a class="home" href="#"><img src="/static/i/mozillaLogo.png" alt="Mozilla"></a>
         </header>
 
-        <section id="about" class="clearfix ">
+        <section id="about" class="clearfix textShadow">
             <div class="doubleColumn">
                 <h1>{% block page_title_header %}{{ self.page_title() }}{% endblock %}</h1>
                 <article class="elevator">
-                    <p>{% block blurb %}A collection of Open Web Apps{% endblock %}</p>
+                    <p>{% block blurb %}A collection of Awesome Web Apps written by our friends!{% endblock %}</p>
                 </article>
             </div>
         </section>
 
         <hr class="shadow">
 
-        <section id="navigation" class="clearfix">
-            {% block navigation %}
-            <a id="home-link" href="/">Home</a>
-            | <a id="keyword-link" href="/keyword/">Categories</a>
-            | <a id="add-link" href="/add">Add An App</a>
-            | <a id="about-link" href="/about">About</a>
-              <form id="search-form" method="GET" action="/search">
-             <input type="text" name="q" value="{{ req.params.get('q') or '' }}">
-             <button type="submit">search</button>
-            </form>
+        <header class="clearfix textShadow navigation">
+          {% block navigation %}
+          <a id="home-link" href="/">Home</a>
+          | <a id="keyword-link" href="/keyword/">Categories</a>
+          | <a id="add-link" href="/add">Add An App</a>
+          | <a id="about-link" href="/about">About</a>
+          <form id="search-form" method="GET" action="/search">
+            <input type="text" name="q" value="{{ req.params.get('q') or '' }}">
+            <button type="submit">search</button>
+          </form>
+          {% endblock %}
+        </header>
 
-            {% endblock %}
+        <section id="projectContent" class="clearfix textShadow">
+            <div id="contentWrap">
+                <div class="tripleColumn">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
         </section>
 
-        <section id="projectContent">
-            {% block content %}{% endblock %}
-        </section>
-
-        <hr>
-
-
+        <footer class="clearfix sans">
+            <ul>
+                <li><a href="http://groups.google.com/group/mozilla-labs">Forum</a></li>
+                <li><a href="#">Contact Us</a></li>
+                <li><a href="http://www.mozilla.com/en-US/privacy-policy.html">Privacy Policy</a></li>
+                <li><a href="http://www.mozilla.com/en-US/about/legal.html">Legal Notices</a></li>
+            </ul>
+            <div class="singleColumn">
+                <p>Copyright &copy; 2011 Mozilla. All rights reserved.</p>
+            </div>
+        </footer>
     </div> <!-- wrapper -->
-
-    <footer class="clearfix sans">
-        <ul>
-            <li><a href="http://groups.google.com/group/mozilla-labs">Forum</a></li>
-            <li><a href="/FIXME">Contact Us</a></li>
-            <li><a href="http://www.mozilla.com/en-US/privacy-policy.html">Privacy Policy</a></li>
-            <li><a href="http://www.mozilla.com/en-US/about/legal.html">Legal Notices</a></li>
-        </ul>
-        <div class="singleColumn">
-            <p>Copyright &copy; 2011 Mozilla. All rights reserved.</p>
-        </div>
-    </footer>
-
-
-    <script src="/static/js/jquery.1.5.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="/static/js/labs.js" type="text/javascript" charset="utf-8"></script>
-    <script src="/static/site.js" type="text/javascript"></script>
-    <script src="{{ app_config.jsapi_location }}/jsapi/include.js"
-            type="text/javascript"></script>
-
 </body>
+<script src="{{ app_config.jsapi_location }}/jsapi/include.js"
+        type="text/javascript"></script>
+<script type="text/javascript" src="/static/js/jquery.1.5.min.js"></script>
+<script type="text/javascript" src="/static/appdir.js"></script>
+<script type="text/javascript" src="/static/site.js"></script>
 </html>
