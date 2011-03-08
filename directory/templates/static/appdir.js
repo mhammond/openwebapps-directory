@@ -44,5 +44,6 @@ $(function() {
 });
 
 function markInstalled(div) {
-  $(div).find(".button").addClass("installed").html("&#x2714; Installed!");
+  div.find(".button").addClass("installed").html("&#x2714; Installed!");
+  div.unbind('click');
 }
