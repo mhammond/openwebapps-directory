@@ -34,14 +34,14 @@ class Application(Base):
     featured_sort = Column(Float)
     featured_start = Column(DateTime)
     featured_end = Column(DateTime)
-    hidden = Column(Boolean, default=False)
+    hide = Column(Boolean, default=False)
     added = Column(DateTime, default=datetime.now)
     last_updated = Column(DateTime, onupdate=datetime.now)
 
     def __init__(self, origin, manifest_json, manifest_url, manifest_fetched,
                  name, description, icon_url, keywords=None,
                  featured=False, featured_sort=None, featured_start=None,
-                 featured_end=None, hidden=False):
+                 featured_end=None, hide=False):
         self.origin = origin
         self.manifest_json = manifest_json
         self.manifest_url = manifest_url
@@ -55,7 +55,7 @@ class Application(Base):
         self.featured_sort = featured_sort
         self.featured_start = featured_start
         self.featured_end = featured_end
-        self.hidden = hidden
+        self.hide = hide
         ## FIXME: there must be a way to do this more automatically?
         self.set_origin_key()
         self.set_slug()
@@ -180,7 +180,7 @@ class Application(Base):
             session = Session()
         q = session.query(cls)
         if not hidden:
-            q = q.filter(not_(cls.hidden))
+            q = q.filter(not_(cls.hide))
         return q.order_by(desc(cls.added)).limit(count)
 
     @classmethod
@@ -190,7 +190,7 @@ class Application(Base):
         now = datetime.now()
         q = session.query(cls)
         if not hidden:
-            q = q.filter(not_(cls.hidden))
+            q = q.filter(not_(cls.hide))
         q = q.filter(and_(
             cls.featured,
             or_(cls.featured_start == None,
@@ -209,7 +209,7 @@ class Application(Base):
         match = '%|' + keyword + '|%'
         q = session.query(cls)
         if not hidden:
-            q = q.filter(not_(cls.hidden))
+            q = q.filter(not_(cls.hide))
         q = q.filter(
             cls.keywords_denormalized.like(match))
         return q
@@ -224,7 +224,7 @@ class Keyword(Base):
     __tablename__ = 'keyword'
     word = Column(Unicode(100), primary_key=True)
     description = Column(UnicodeText)
-    hidden = Column(Boolean, default=False)
+    hide = Column(Boolean, default=False)
 
     def __init__(self, word):
         self.word = word
@@ -261,7 +261,7 @@ class Keyword(Base):
     def all_words(cls, session=None):
         if session is None:
             session = Session()
-        return session.query(cls).filter(not_(cls.hidden)).order_by(cls.word)
+        return session.query(cls).filter(not_(cls.hide)).order_by(cls.word)
 
     @classmethod
     def trim_keywords(cls, session=None):

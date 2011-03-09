@@ -28,6 +28,7 @@ class WSGIApp(object):
     map.connect('keywords', '/keyword/', method='all_keywords')
     map.connect('admin_app', '/app/{origin}/{slug}/admin', method='admin_app')
     map.connect('keyword_admin', '/admin/keywords', method='admin_keywords')
+    map.connect('update_db', '/.update-db', method='update_db')
 
     def __init__(self, db, search_paths=None,
                  site_title=None,
@@ -53,7 +54,6 @@ class WSGIApp(object):
             kw['pool_recycle'] = 3600
         self.engine = create_engine(self.db, **kw)
         model.Session.configure(bind=self.engine)
-        model.Base.metadata.create_all(self.engine)
 
     @wsgify
     def __call__(self, req):
@@ -63,8 +63,16 @@ class WSGIApp(object):
         match, route = results
         link = URLGenerator(self.map, req.environ)
         req.urlvars = ((), match)
+        if match['method'] == 'update_db':
+            return self.update_db(req)
         handler = Handler(self, req, link, match)
         return handler.respond()
+
+    def update_db(self, req=None):
+        model.Base.metadata.create_all(self.engine)
+        from directory.migrate import update_database
+        update_database(self.engine)
+        return 'ok'
 
 
 class Handler(object):
