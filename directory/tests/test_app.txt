@@ -1,0 +1,23 @@
+This is a basic functional test of the application.
+
+First, the index page:
+
+    >>> resp = app.get('/')
+    >>> # Because we don't have any apps, we shouldn't have Featured Apps:
+    >>> resp.mustcontain(no='Featured Apps')
+    >>> resp = app.get('/add')
+    >>> import json
+    >>> add_resource('http://test1.com/manifest.webapp',
+    ...              json.dumps(dict(name='Test app')))
+    >>> add_form = resp.forms[1]
+    >>> add_form['manifest_url'] = 'http://test1.com/manifest.webapp'
+    >>> resp = add_form.submit(status=302)
+    >>> print resp.location
+    http://localhost/app/test1.com/test-app
+    >>> add_resource('http://test2.com/manifest.webapp',
+    ...              json.dumps(dict(origin='http://test2.com')))
+    >>> add_form['manifest_url'] = 'http://test2.com/manifest.webapp'
+    >>> resp = add_form.submit()
+    >>> resp.mustcontain('The name property is required')
+    >>> resp = app.get('/')
+    >>> resp.mustcontain('Test app')

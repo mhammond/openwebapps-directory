@@ -9,7 +9,7 @@ from directory import model
 from directory import validator
 from directory.util import get_origin, format_description, clean_unicode
 from directory.util import make_slug, get_template_search_paths, json
-import urllib2
+from directory import httpget
 import jinja2
 from datetime import datetime
 import dateutil
@@ -201,12 +201,10 @@ class Handler(object):
 
     def _get_manifest(self, manifest_url):
         errors = {}
-        resp = urllib2.urlopen(manifest_url)
-        content_type = resp.info().getheader('content-type')
+        content_type, raw_data = httpget.get(manifest_url)
         if content_type != validator.content_type:
             errors['content_type'] = content_type
             errors['content_type_wanted'] = validator.content_type
-        raw_data = resp.read()
         ## FIXME: should try to figure out the encoding better
         if raw_data.startswith(codecs.BOM_UTF8):
             raw_data = raw_data[len(codecs.BOM_UTF8):]
