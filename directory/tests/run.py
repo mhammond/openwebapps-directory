@@ -2,6 +2,9 @@ import doctest
 import os
 import sys
 import site
+import warnings
+
+warnings.filterwarnings("error")
 
 here = os.path.dirname(os.path.abspath(__file__))
 
