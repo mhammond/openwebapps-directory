@@ -34,13 +34,14 @@ class Application(Base):
     featured_sort = Column(Float)
     featured_start = Column(DateTime)
     featured_end = Column(DateTime)
+    hidden = Column(Boolean, default=False)
     added = Column(DateTime, default=datetime.now)
     last_updated = Column(DateTime, onupdate=datetime.now)
 
     def __init__(self, origin, manifest_json, manifest_url, manifest_fetched,
                  name, description, icon_url, keywords=None,
                  featured=False, featured_sort=None, featured_start=None,
-                 featured_end=None):
+                 featured_end=None, hidden=False):
         self.origin = origin
         self.manifest_json = manifest_json
         self.manifest_url = manifest_url
@@ -54,6 +55,7 @@ class Application(Base):
         self.featured_sort = featured_sort
         self.featured_start = featured_start
         self.featured_end = featured_end
+        self.hidden = hidden
         ## FIXME: there must be a way to do this more automatically?
         self.set_origin_key()
         self.set_slug()
@@ -88,7 +90,7 @@ class Application(Base):
                       session=None):
         obj = cls(
             origin=origin,
-            manifest_json=json.dumps(manifest),
+            manifest_json=unicode(json.dumps(manifest)),
             manifest_fetched=manifest_fetched,
             manifest_url=manifest_url,
             name=manifest['name'],
@@ -99,7 +101,7 @@ class Application(Base):
         if keywords:
             obj.keywords = keywords
         else:
-            obj.keywords = ['uncategorized']
+            obj.keywords = [u'uncategorized']
         if session is not None:
             session.add(obj)
         Keyword.add_words(obj.keywords, session=session)
@@ -110,7 +112,7 @@ class Application(Base):
         if origin is not None and not self.origin == origin:
             raise ValueError(
                 "You cannot update the origin")
-        self.manifest_json = json.dumps(manifest)
+        self.manifest_json = unicode(json.dumps(manifest))
         self.manifest_fetched = manifest_fetched
         self.manifest_url = manifest_url
         self.name = manifest['name']
@@ -131,7 +133,7 @@ class Application(Base):
 
     @manifest.setter
     def manifest(self, value):
-        self.manifest_json = json.dumps(value)
+        self.manifest_json = unicode(json.dumps(value))
 
     @property
     def manifest_developer(self):
@@ -173,32 +175,42 @@ class Application(Base):
         return q
 
     @classmethod
-    def recent(cls, count, session=None):
+    def recent(cls, count, hidden=False, session=None):
         if session is None:
             session = Session()
-        return session.query(cls).order_by(desc(cls.added)).limit(count)
+        q = session.query(cls)
+        if not hidden:
+            q = q.filter(not_(cls.hidden))
+        return q.order_by(desc(cls.added)).limit(count)
 
     @classmethod
-    def featured_apps(cls, session=None):
+    def featured_apps(cls, hidden=False, session=None):
         if session is None:
             session = Session()
         now = datetime.now()
-        return session.query(cls).filter(and_(
+        q = session.query(cls)
+        if not hidden:
+            q = q.filter(not_(cls.hidden))
+        q = q.filter(and_(
             cls.featured,
             or_(cls.featured_start == None,
                 cls.featured_start <= now),
             or_(cls.featured_end == None,
                 cls.featured_end >= now))).order_by(
             cls.featured_sort)
+        return q
 
     @classmethod
-    def search_keyword(cls, keyword, session=None):
+    def search_keyword(cls, keyword, hidden=False, session=None):
         if session is None:
             session = Session()
         keyword = keyword.lower()
         keyword = keyword.replace('%', '%%').replace('|', ' ')
         match = '%|' + keyword + '|%'
-        q = session.query(cls).filter(
+        q = session.query(cls)
+        if not hidden:
+            q = q.filter(not_(cls.hidden))
+        q = q.filter(
             cls.keywords_denormalized.like(match))
         return q
 
@@ -231,6 +243,7 @@ class Keyword(Base):
 
     @classmethod
     def add_words(cls, words, session=None):
+        assert all(isinstance(o, unicode) for o in words), words
         leftover = set(words)
         this_session = session or Session()
         q = this_session.query(Keyword).filter(
