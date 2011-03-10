@@ -9,7 +9,7 @@ First, the index page:
     >>> import json
     >>> add_resource('http://test1.com/manifest.webapp',
     ...              json.dumps(dict(name='Test app')))
-    >>> add_form = resp.forms[1]
+    >>> add_form = resp.forms['add-form']
     >>> add_form['manifest_url'] = 'http://test1.com/manifest.webapp'
     >>> resp = add_form.submit(status=302)
     >>> print resp.location
@@ -21,3 +21,21 @@ First, the index page:
     >>> resp.mustcontain('The name property is required')
     >>> resp = app.get('/')
     >>> resp.mustcontain('Test app')
+
+Now to test the removal:
+
+    >>> import urllib2
+    >>> resp = app.get('/add')
+    >>> form = resp.forms['remove-form']
+    >>> add_resource('http://test1.com/manifest.webapp',
+    ...              urllib2.HTTPError('http://test1.com/manifest.webapp',
+    ...                                400, 'whatever', None, None))
+    >>> form['remove_manifest_url'] = 'http://test1.com/manifest.webapp'
+    >>> resp = form.submit()
+    >>> resp.mustcontain('The url must return 404')
+    >>> add_resource('http://test1.com/manifest.webapp',
+    ...              urllib2.HTTPError('http://test1.com/manifest.webapp',
+    ...                                404, 'not found', None, None))
+    >>> resp = form.submit()
+    >>> resp = app.get('/')
+    >>> resp.mustcontain(no='Test app')

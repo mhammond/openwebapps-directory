@@ -3,7 +3,7 @@
 {% block page_title %}Add an application{% endblock %}
 
 {% block content %}
-<form action="/add" method="POST">
+<form action="/add" method="POST" id="add-form">
 {% if errors %}
 <div class="errors">
   <ul>
@@ -38,6 +38,12 @@
 {% if check_message %}
 <div class="success">
   {{ check_message }}
+</div>
+{% endif %}
+
+{% if remove_error %}
+<div class="error">
+  {{ remove_error }}
 </div>
 {% endif %}
 
@@ -104,6 +110,28 @@ Check and validate my manifest, but don't add the app to the directory yet</labe
 
 </div>
 
+<h2>Deleting an app</h2>
+
+<div>
+
+  To delete an application, its manifest has to be removed from the
+  web.  Enter the URL of the manifest as it was originally registered,
+  and if that URL returns a <code>404 Not Found</code> or <code>410
+  Gone<code> status then the application will be deleted from the
+  index.
+
+  <form action="/add" method="POST" id="remove-form">
+
+  <fieldset>
+    <legend>Remove an application</legend>
+
+    <input type="text" name="remove_manifest_url"
+     value="{{ req.params.get('manifest_url') or ''}}">
+    <button type="submit">Try to remove this app</button>
+
+  </fieldset>
+
+  </form>
 
 
 

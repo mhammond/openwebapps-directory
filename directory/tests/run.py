@@ -37,7 +37,8 @@ def init_app():
     simple_templates = os.path.join(os.path.dirname(here), 'simple-templates')
     wsgi_app = make_app(db='sqlite:///test_directory.sqlite',
                         include_static=True,
-                        search_paths=[simple_templates])
+                        search_paths=[simple_templates],
+                        create_on_startup=True)
     from webtest import TestApp
     app = TestApp(wsgi_app)
     import directory.httpget

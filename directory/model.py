@@ -217,6 +217,15 @@ class Application(Base):
             cls.keywords_denormalized.like(match))
         return q
 
+    @classmethod
+    def by_manifest_url(cls, url, session=None):
+        session = session or Session()
+        q = session.query(cls).filter(cls.manifest_url == url)
+        try:
+            return q.one()
+        except NoResultFound:
+            return None
+
 
 class Keyword(Base):
     """Represents available keywords (keywords some application has used)

@@ -13,6 +13,7 @@ from directory import httpget
 import jinja2
 from datetime import datetime
 import dateutil
+import urllib2
 
 
 class WSGIApp(object):
@@ -153,6 +154,9 @@ class Handler(object):
     def add(self):
         errors = {}
         check_message = None
+        if (self.req.method == 'POST'
+            and self.req.params.get('remove_manifest_url')):
+            return self.remove_app()
         if self.req.method == 'POST':
             check_message, errors, resp = self._add_application()
             if resp is not None:
@@ -231,6 +235,26 @@ class Handler(object):
             if error_log:
                 errors['error_log'] = error_log
         return manifest, raw_data, errors
+
+    def remove_app(self):
+        manifest_url = self.req.params['remove_manifest_url']
+        message = None
+        try:
+            httpget.get(manifest_url)
+        except urllib2.HTTPError, e:
+            if e.code not in (404, 410):
+                message = 'The url must return 404 or 410 (got %s)' % e.code
+        else:
+            message = 'The url still exists'
+        app = model.Application.by_manifest_url(
+            manifest_url, session=self.session)
+        if app is None:
+            message = 'No application is registered with that URL'
+        if message:
+            return self.render('add', remove_error=message)
+        self.session.delete(app)
+        ## FIXME: note the delete properly
+        return 'deleted'
 
     def build(self):
         p = self.req.params
