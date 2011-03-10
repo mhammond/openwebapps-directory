@@ -164,11 +164,14 @@ class Application(Base):
         return '/app/%s/%s' % (self.origin_key, self.slug)
 
     @classmethod
-    def search(cls, query, session=None):
+    def search(cls, query, hidden=False, session=None):
         quoted_query = '%' + query.replace('%', '%%') + '%'
         if session is None:
             session = Session()
-        q = session.query(cls).filter(or_(
+        q = session.query(cls)
+        if not hidden:
+            q = q.filter(not_(cls.hide))
+        q = q.filter(or_(
             cls.name.ilike(quoted_query),
             cls.description.ilike(quoted_query),
             cls.keywords_denormalized.like(quoted_query)))

@@ -144,9 +144,9 @@ class Handler(object):
     ## Actual views:
 
     def index(self):
-        featured_apps = model.Application.featured_apps().all()
+        featured_apps = model.Application.featured_apps(hidden=self.is_admin()).all()
         keywords = [k.word for k in model.Keyword.all_words()]
-        recent_apps = model.Application.recent(6).all()
+        recent_apps = model.Application.recent(6, hidden=self.is_admin()).all()
         return self.render('index', featured_apps=featured_apps,
                            keywords=keywords, recent_apps=recent_apps)
 
@@ -284,6 +284,7 @@ class Handler(object):
                 self.session.commit()
                 return 'Deleted!'
             app.featured = bool(p.get('featured'))
+            app.hide = bool(p.get('hide'))
             if p.get('featured_sort'):
                 app.featured_sort = float(p['featured_sort'])
             else:
@@ -336,13 +337,13 @@ class Handler(object):
     def search(self):
         q = self.req.GET.get('q')
         if q:
-            results = model.Application.search(q).all()
+            results = model.Application.search(q, hidden=self.is_admin()).all()
         else:
             results = None
         return self.render('search', results=results, q=q)
 
     def view_keywords(self, keyword):
-        apps = model.Application.search_keyword(keyword)
+        apps = model.Application.search_keyword(keyword, hidden=self.is_admin())
         k = model.Keyword.get(keyword)
         if k is None:
             # This doesn't exist

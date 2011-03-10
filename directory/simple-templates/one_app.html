@@ -4,7 +4,11 @@
 <a href="{{ app.url }}"><img src="{{ app.icon_url }}" class="app-icon" /></a>
 {% endif %}
 
-<div class="app-name"><a href="{{ app.url }}">{{ app.name }}</a></div>
+<div class="app-name"><a href="{{ app.url }}">{{ app.name }}</a>
+{% if app.hide and handler.is_admin() %}
+(hidden)
+{% endif %}
+</div>
 
 {% if app.manifest_developer %}
 <div class="app-developer">

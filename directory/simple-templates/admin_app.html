@@ -18,7 +18,13 @@ Admin for <a href="{{ app.url }}">{{ app.name }} ({{ app.origin }})</a>
   </tr>
   <tr>
     <td><label for="featured">Featured:</label></td>
-    <td><input type="checkbox" name="featured" {% if app.featured %}checked="checked"{% endif %} id="featured"></td>
+    <td><input type="checkbox" name="featured" id="featured"
+      {% if app.featured %}checked="checked"{% endif %}></td>
+  </tr>
+  <tr>
+    <td><label for="hide">Hide this app:</label></td>
+    <td><input type="checkbox" name="hide" id="hide"
+      {% if app.hide %}checked="checked"{% endif %}></td>
   </tr>
   <tr>
     <td>Featured sort value (float):</td>
