@@ -39,3 +39,18 @@ Now to test the removal:
     >>> resp = form.submit()
     >>> resp = app.get('/')
     >>> resp.mustcontain(no='Test app')
+
+And test emails:
+
+    >>> add_resource('http://test3.com/manifest.webapp',
+    ...              json.dumps(dict(name='Test Email App', developer=dict(email='test@example.com'))))
+    >>> resp = app.get('/add')
+    >>> resp.forms['add-form']['manifest_url'] = 'http://test3.com/manifest.webapp'
+    >>> resp = resp.forms['add-form'].submit()
+    >>> print resp.location
+    http://localhost/app/test3.com/test-email-app
+    >>> resp = app.get('/admin/emails', status=404)
+    >>> app.extra_environ['x-wsgiorg.developer_user'] = 'test'
+    >>> resp = app.get('/admin/emails')
+    >>> resp.mustcontain('test@example.com')
+    >>>

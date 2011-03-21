@@ -42,6 +42,7 @@
           <a id="home-link" href="/">Home</a>
           | <a id="keyword-link" href="/keyword/">Categories</a>
           | <a id="add-link" href="/add">Add An App</a>
+          | <a id="build-link" href="/build">Build A Manifest</a>
           | <a id="about-link" href="/about">About</a>
           <form id="search-form" method="GET" action="/search">
             <input type="text" name="q" value="{{ req.params.get('q') or '' }}">
@@ -75,4 +76,5 @@
 <script type="text/javascript" src="/static/js/jquery.1.5.min.js"></script>
 <script type="text/javascript" src="/static/appdir.js"></script>
 <script type="text/javascript" src="/static/site.js"></script>
+{% block scripts %}{% endblock %}
 </html>

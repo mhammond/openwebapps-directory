@@ -29,6 +29,7 @@ class WSGIApp(object):
     map.connect('keywords', '/keyword/', method='all_keywords')
     map.connect('admin_app', '/app/{origin}/{slug}/admin', method='admin_app')
     map.connect('keyword_admin', '/admin/keywords', method='admin_keywords')
+    map.connect('email_admin', '/admin/emails', method="admin_emails")
     map.connect('update_db', '/.update-db', method='update_db')
 
     def __init__(self, db, search_paths=None,
@@ -259,15 +260,23 @@ class Handler(object):
     def build(self):
         p = self.req.params
         manifest = None
+        origin = None
         if 'url' in p and 'has_manifest' not in p:
             manifest = self._guess_manifest(p['url'])
+            origin = get_origin(p['url'])
         elif 'has_manifest' in p:
             pass
-        return self.render('build', manifest=manifest)
+        return self.render('build', manifest=manifest, origin=origin,
+                           content_type=validator.content_type)
 
     def _guess_manifest(self, url):
+        content_type, content = httpget.get(url)
+        print url, content_type
+        if content_type.lower() in (validator.content_type, 'application/json'):
+            data = json.loads(content)
+            return data
         import lxml.html
-        page = lxml.html.parse(url)
+        page = lxml.html.parse(url).getroot()
         name = page.cssselect('title')
         if name:
             name = name[0].text_content()
@@ -283,12 +292,26 @@ class Handler(object):
             desc = desc.get('content').strip()
         else:
             desc = ''
-        ## FIXME: get favicon
+        icons = {}
+        icon = page.cssselect('link[rel*=icon]')
+        if icon:
+            ## FIXME: how do I get the size?
+            icons['32'] = icon[0].get('href')
+        else:
+            favicon_url = get_origin(url) + '/favicon.ico'
+            try:
+                content_type, icon_file = httpget.get(favicon_url)
+            except:
+                pass
+            else:
+                if icon_file:
+                    icons['32'] = favicon_url
+
         manifest = {
             'name': name,
             'description': desc,
-            'launch_path': urlparse.urlsplit(url).path,
-            'icons': {},
+            'launch_path': urlparse.urlsplit(url).path or '/',
+            'icons': icons,
             'experimental': {'keywords': keywords},
             }
         return manifest
@@ -357,6 +380,14 @@ class Handler(object):
             s.commit()
         return self.render('admin_keywords', keywords=keywords,
                            trimmed=trimmed)
+
+    def admin_emails(self):
+        if not self.is_admin():
+            raise exc.HTTPNotFound
+        apps = [
+            (app.manifest, app)
+            for app in self.session.query(model.Application)]
+        return self.render('admin_emails', apps=apps)
 
     def search(self):
         q = self.req.GET.get('q')

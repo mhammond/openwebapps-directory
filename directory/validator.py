@@ -54,7 +54,11 @@ def validate(manifest):
                 errors.append(
                     'developer.url property must be a string (got %s)'
                     % json.dumps(dev['name']))
-            extra = extra_keys(dev, ['name', 'url'])
+            if 'email' in dev and not is_string(dev['email']):
+                errors.append(
+                    'developer.email property must be a string (got %s)'
+                    % json.dumps(dev['email']))
+            extra = extra_keys(dev, ['name', 'url', 'email'])
             if extra:
                 errors.append(
                     'The developer object has unknown keys: %s'

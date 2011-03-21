@@ -11,6 +11,7 @@
      <a id="home-link" href="/">Home</a>
      | <a id="keyword-link" href="/keyword/">Categories</a>
      | <a id="add-link" href="/add">Add An App</a>
+     | <a id="build-link" href="/build">Build A Manifest</a>
      | <a id="about-link" href="/about">About</a>
      <form id="search-form" method="GET" action="/search">
        <input type="text" name="q" value="{{ req.params.get('q') or '' }}">
@@ -25,5 +26,7 @@
        type="text/javascript"></script>
       <script src="/static/site.js" type="text/javascript"></script>
     {% endblock %}
+
+  {% block scripts %}{% endblock %}
   </body>
 </html>
