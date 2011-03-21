@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block page_title %}Admin Emails/Apps{% endblock %}
+
+{% block content %}
+
+<h3>All applications:</h3>
+
+<table>
+  <tr>
+    <th>App name</th>
+    <th>App URL</th>
+    <th>Developer email</th>
+  </tr>
+  {% for manifest, app in apps %}
+  <tr>
+    <td>
+      {{ app.name }}
+    </td>
+    <td>
+      <a href="{{ app.origin }}">{{ app.origin }}</a>
+    </td>
+    <td>
+      {% if manifest.get('developer', {}).get('email') %}
+      <a href="mailto:{{ manifest['developer']['email'] }}">{{ manifest['developer']['email'] }}</a>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3>Just the emails...</h3>
+
+<textarea style="width: 100%; height: 70%">{% for manifest, app in apps %}
+{% if manifest.get('developer', {}).get('email') %}
+{{ manifest['developer']['email'] }}
+{% endif %}{% endfor %}</textarea>
+
+{% endblock %}
