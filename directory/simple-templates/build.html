@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block page_title %}Build Your App Manifest{% endblock page_title %}
+
+{% block scripts %}
+<script src="/static/build.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<form action="" method="GET" id="build">
+
+Your app's URL:<br>
+<input type="text" name="url" value="{{ req.params.get('url') or '' }}">
+<button type="submit">Generate from site or manifest</button>
+
+</form>
+
+{% if manifest %}
+<h2>Basic Information</h2>
+
+<div id="generation-form">
+
+<input type="hidden" name="has_manifest" value="1">
+
+<table>
+  <tr>
+    <td>Name:</td>
+    <td><input type="text" name="name" value="{{ manifest['name'] }}"></td>
+  </tr>
+  <tr>
+    <td>Description:</td>
+    <td><textarea name="description" style="width: 100%" rows=5>{{ manifest['description'] }}</textarea></td>
+  </tr>
+  <tr>
+    <td>Launch URL:</td>
+    <td><code>{{ origin }}</code> <input type="text" name="launch_path" value="{{ manifest['launch_path'] }}"></td>
+  </tr>
+  <tr>
+    <td>Keywords (comma-separated):</td>
+    <td><input type="text" name="keywords" value="{{ ', '.join(manifest.get('experimental', {}).get('keywords', [])) }}"></td>
+  </tr>
+  {% for size, icon in sorted(manifest.get('icons', {}).items()) %}
+  <tr class="icon-row">
+    <td>Icon:<a href="#" class="remove">x</a></td>
+    <td>URL: <input type="text" name="icon_url_{{ size }}" value="{{ icon }}">
+      <br>
+      Size: <input type="text" name="icon_size_{{ size }}" value="{{ size }}">
+    </td>
+  </tr>
+  {% endfor %}
+  <tr colspan="2"><td><button type="button" id="add-icon">add icon</button></td></tr>
+  <tr>
+    <td>Widget URL:</td>
+    <td><input type="text" name="widget_url" value="{{ manifest.get('widget', {}).get('path', '') }}"></td>
+  </tr>
+  <tr>
+    <td>Widget size:</td>
+    <td>Height: <input type="text" name="widget_height" value="{{ manifest.get('widget', {}).get('height', '') }}">
+      Width: <input type="text" name="widget_width" value="{{ manifest.get('widget', {}).get('width', '') }}">
+    </td>
+  </tr>
+  <tr>
+    <td>Developer name (e.g., company name):</td>
+    <td><input type="text" name="developer_name"
+         value="{{ manifest.get('developer', {}).get('name', '') }}"></td>
+  </tr>
+  <tr>
+    <td>Developer URL:</td>
+    <td><input type="text" name="developer_url"
+         value="{{ manifest.get('developer', {}).get('url', '') }}"></td>
+  </tr>
+  <tr>
+    <td>Developer email:</td>
+    <td><input type="text" name="developer_email"
+         value="{{ manifest.get('developer', {}).get('email', '') }}"></td>
+  </tr>
+
+
+</table>
+
+</div>
+
+Your manifest:<br>
+<textarea style="width: 100%; height: 8em" id="manifest"></textarea>
+
+<h3>What next?</h3>
+
+<p>To turn your application into an Open Web App, copy this manifest
+to a file in your application, e.g., <code>/manifest.webapp</code>.
+You <em>must</em> make sure this file is served with the content-type
+of <code>{{content_type}}</code>.  You can check the result by trying
+to <a href="/add">trying to add your app to the index</a>.</p>
+
+{% endif %}
+
+{% endblock %}
