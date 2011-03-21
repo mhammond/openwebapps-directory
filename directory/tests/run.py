@@ -24,7 +24,13 @@ def main():
         flags = flags | doctest.REPORT_UDIFF
     if '-x' in sys.argv:
         flags = flags | doctest.REPORT_ONLY_FIRST_FAILURE
-    for fn in os.listdir(here):
+    names = []
+    for name in sys.argv[1:]:
+        if name.endswith('.txt'):
+            names.append(name)
+    if not names:
+        names = os.listdir(here)
+    for fn in names:
         if fn.endswith('.txt') and fn.startswith('test_'):
             doctest.testfile(fn, optionflags=flags,
                              globs=init_app())
