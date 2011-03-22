@@ -15,7 +15,7 @@ except ImportError:
 
 __all__ = ['make_slug', 'get_icon', 'get_origin', 'origin_to_key',
            'format_description', 'clean_unicode', 'get_template_search_paths',
-           'json']
+           'json', 'atom_date']
 
 
 _repl_chars = re.compile(r"[ _]")
@@ -131,3 +131,9 @@ def get_template_search_paths(paths):
         os.path.join(os.path.dirname(os.path.abspath(__file__)),
                      'simple-templates'))
     return paths
+
+
+def atom_date(dt):
+    if dt is None:
+        return ''
+    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')

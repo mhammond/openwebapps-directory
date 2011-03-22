@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Recently Submitted Apps</title>
+  <subtitle>A subtitle.</subtitle>
+  <link href="{{ req.url }}" rel="self" />
+  <link href="{{ req.application_url }}" />
+  <id>tag:{{ req.host }},feed</id>
+  <author>
+    <name>Mozilla</name>
+    {# <email></email> #}
+  </author>
+
+  {% if apps %}
+  <updated>{{ atom_date(apps[0].last_updated) }}</updated>
+  {% endif %}
+
+  {% for app in apps %}
+  <entry>
+    <title>{{ app.name }}</title>
+    <link rel="alternate" type="text/html" href="{{ urljoin(req.application_url, app.link) }}" />
+    {# FIXME: should this be a timestamped id? #}
+    <id>tag:{{ req.host }},{{app.origin_key}}</id>
+    <updated>{{ atom_date(app.last_updated) }}</updated>
+    <summary type="html">
+      {# it would be nice to include all of one_app.html here #}
+      Added application at &lt;a href="{{ app.origin }}"&gt;{{ app.origin }}&lt;/a&gt;
+    </summary>
+  </entry>
+  {% endfor %}
+
+</feed>

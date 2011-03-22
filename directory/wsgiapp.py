@@ -8,7 +8,7 @@ from routes import Mapper, URLGenerator
 from directory import model
 from directory import validator
 from directory.util import get_origin, format_description, clean_unicode
-from directory.util import make_slug, get_template_search_paths, json
+from directory.util import make_slug, get_template_search_paths, json, atom_date
 from directory import httpget
 import jinja2
 from datetime import datetime
@@ -31,6 +31,7 @@ class WSGIApp(object):
     map.connect('keyword_admin', '/admin/keywords', method='admin_keywords')
     map.connect('email_admin', '/admin/emails', method="admin_emails")
     map.connect('update_db', '/.update-db', method='update_db')
+    map.connect('feed', '/feed.atom', method='feed')
 
     def __init__(self, db, search_paths=None,
                  site_title=None,
@@ -123,7 +124,9 @@ class Handler(object):
                 app_html=self.app_html,
                 format_description=format_description,
                 template_class=template_class,
-                format_date=self.format_date))
+                format_date=self.format_date,
+                atom_date=atom_date,
+                urljoin=urlparse.urljoin))
         return tmpl.render(**args)
 
     def get_app(self, origin_key, session=None):
@@ -412,3 +415,8 @@ class Handler(object):
 
     def about(self):
         return self.render('about')
+
+    def feed(self):
+        apps = model.Application.recent(10)
+        return Response(body=self.render('feed.xml', apps=apps),
+                        content_type='application/atom+xml')
