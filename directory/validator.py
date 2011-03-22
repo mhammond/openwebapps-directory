@@ -1,7 +1,9 @@
 """Validates the manifest files"""
 from directory.util import json
+import posixpath
+import urlparse
 
-__all__ = ['content_type', 'validate']
+__all__ = ['content_type', 'validate', 'normalize']
 
 ## The expected content-type:
 content_type = 'application/x-web-app-manifest+json'
@@ -35,9 +37,9 @@ def validate(manifest):
         elif not manifest['description']:
             errors.append(
                 'description property, if present, must not be empty')
-        elif len(manifest['description']) > 1024:
+        elif len(manifest['description']) >= 1024:
             errors.append(
-                'description property can only be 1024 characters long (got %s characters)'
+                'description property can only be 1023 characters long (got %s characters)'
                 % len(manifest['description']))
     if 'developer' in manifest:
         dev = manifest['developer']
@@ -53,7 +55,7 @@ def validate(manifest):
             if 'url' in dev and not is_string(dev['url']):
                 errors.append(
                     'developer.url property must be a string (got %s)'
-                    % json.dumps(dev['name']))
+                    % json.dumps(dev['url']))
             if 'email' in dev and not is_string(dev['email']):
                 errors.append(
                     'developer.email property must be a string (got %s)'
@@ -62,7 +64,7 @@ def validate(manifest):
             if extra:
                 errors.append(
                     'The developer object has unknown keys: %s'
-                    ', '.join(extra))
+                    % ', '.join(extra))
     if 'icons' in manifest:
         if not is_dict(manifest['icons']):
             errors.append(
@@ -72,11 +74,19 @@ def validate(manifest):
             for key in manifest['icons']:
                 if not is_string(manifest['icons'][key]):
                     errors.append(
-                        'The icons.%s property must be a string (got %s)'
-                        % json.dumps(manifest['icons'][key]))
-                elif not manifest['icons'][key]:
+                        'The icons[%r] property must be a string (got %s)'
+                        % (key, json.dumps(manifest['icons'][key])))
+                else:
+                    try:
+                        int(key)
+                    except (ValueError, TypeError):
+                        errors.append(
+                            'The icons[%r] property should be a numeric pixel size'
+                            % key)
+                if manifest['icons'][key] == "":
                     errors.append(
-                        'The icon.%s property is empty')
+                        'The icons[%r] property is empty' % key)
+
     if 'installs_allowed_from' in manifest:
         if not isinstance(manifest['installs_allowed_from'], (list, tuple)):
             errors.append(
@@ -109,6 +119,10 @@ def validate(manifest):
         elif not manifest['name']:
             errors.append(
                 'name property must not be empty')
+        elif len(manifest['name']) >= 128:
+            errors.append(
+                'name property can only be 127 characters long (got %s characters)'
+                % len(manifest['name']))
     else:
         errors.append(
             'The name property is required and was not provided')
@@ -122,35 +136,85 @@ def validate(manifest):
             errors.append(
                 'The widget property must be an object (got %s)'
                 % json.dumps(wid))
-        if 'path' not in wid:
-            errors.append(
-                'The widget.path property is missing')
-        elif not is_string(wid['path']):
-            errors.append(
-                'The widget.path property must be a string (got %s)'
-                % json.dumps(wid['path']))
-        elif not is_path(wid['path']):
-            errors.append(
-                'The widget.path property is not a valid path (got %s)'
-                % json.dumps(wid['path']))
+        if 'path' in wid:
+            if not is_string(wid['path']):
+                errors.append(
+                    'The widget.path property must be a string (got %s)'
+                    % json.dumps(wid['path']))
+            elif not is_path(wid['path']):
+                errors.append(
+                    'The widget.path property is not a valid path (got %s)'
+                    % json.dumps(wid['path']))
         if 'width' in wid:
-            if not isinstance(wid['width'], int):
+            if not isinstance(wid['width'], (int, float)):
                 errors.append(
                     'The widget.width property must be an integer (got %s)'
                     % json.dumps(wid['width']))
-            elif 10 > wid['width'] > 1000:
+            elif wid['width'] < 10 or wid['width'] > 1000:
                 errors.append(
-                    'The widget.width property must be [10-1000]')
+                    'The widget.width property must be [10-1000] (got %s)'
+                    % json.dumps(wid['width']))
         if 'height' in wid:
-            if not isinstance(wid['height'], int):
+            if not isinstance(wid['height'], (int, float)):
                 errors.append(
                     'The widget.height property must be an integer (got %s)'
                     % json.dumps(wid['height']))
-            elif 10 > wid['height'] > 1000:
+            elif wid['height'] < 10 or wid['height'] > 1000:
                 errors.append(
-                    'The widget.height property must be [10-1000]')
-
+                    'The widget.height property must be [10-1000] (got %s)'
+                    % json.dumps(wid['height']))
+    if 'locales' in manifest:
+        if 'default_locale' not in manifest:
+            errors.append(
+                'The locales property requires the presence of the default_locale property')
+        for lang in manifest['locales']:
+            l = manifest['locales'][lang]
+            # allowed: description, developer, icons, launch_path, name
+            keys = set(l)
+            keys -= set(['description', 'developer', 'icons', 'launch_path', 'name'])
+            for key in sorted(keys):
+                errors.append(
+                    'Illegal property locales[%r].%s'
+                    % (lang, key))
+            if 'developer' in l:
+                keys = set(l['developer'].keys())
+                keys -= set(['email', 'url', 'name'])
+                for key in sorted(keys):
+                    errors.append(
+                        'Illegal property locales[%r].developer.%s'
+                        % (lang, key))
+    keys = set(manifest.keys())
+    keys -= set("""
+    capabilities default_locale locales experimental description developer
+    icons installs_allowed_from launch_path name version widget""".split())
+    for key in sorted(keys):
+        errors.append('Illegal property %s (value: %s)'
+                      % (key, json.dumps(manifest[key])))
     return errors
+
+
+def normalize(manifest):
+    """Normalizes values in the manifest"""
+    manifest = manifest.copy()
+    if 'widget' in manifest:
+        manifest['widget'] = manifest['widget'].copy()
+    if 'icons' in manifest:
+        manifest['icons'] = manifest['icons'].copy()
+    if 'launch_path' in manifest:
+        manifest['launch_path'] = normalize_path(manifest['launch_path'])
+    if 'path' in manifest.get('widget', {}):
+        manifest['widget']['path'] = normalize_path(manifest['widget']['path'])
+    for key in 'width', 'height':
+        if key in manifest.get('widget', {}):
+            manifest['widget'][key] = int(manifest['widget'][key])
+    if 'installs_allowed_from' in manifest:
+        manifest['installs_allowed_from'] = [
+            normalize_url(u) for u in manifest['installs_allowed_from']]
+    for key in manifest.get('icons', {}):
+        manifest['icons'][key] = normalize_path(manifest['icons'][key])
+    if 'icons' in manifest and not manifest['icons']:
+        del manifest['icons']
+    return manifest
 
 
 ## A bunch of helpers:
@@ -172,7 +236,13 @@ def is_path(s):
 def is_origin_match(s):
     if s == '*':
         return True
-    ## FIXME: do better origin check
+    parts = urlparse.urlsplit(s)
+    if parts.scheme not in ('http', 'https'):
+        return False
+    if parts.path and parts.path != '/':
+        return False
+    if parts.query or parts.fragment:
+        return False
     return True
 
 
@@ -182,3 +252,20 @@ def extra_keys(d, allowed):
         if key not in allowed:
             extra.append(key)
     return extra
+
+
+## Normalizing helpers:
+
+def normalize_path(p):
+    return posixpath.normpath(p)
+
+
+def normalize_url(u):
+    parts = urlparse.urlsplit(u)
+    if parts[0] == 'http' and parts[1].endswith(':80'):
+        parts = parts[:1] + (parts[1][:-3],) + parts[2:]
+    elif parts[0] == 'https' and parts[1].endswith(':443'):
+        parts = parts[:1] + (parts[1][:-4],) + parts[2:]
+    if not parts[2]:
+        parts = parts[:2] + ('/',) + parts[3:]
+    return urlparse.urlunsplit(parts)

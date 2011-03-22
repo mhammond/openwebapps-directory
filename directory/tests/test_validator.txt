@@ -1,0 +1,355 @@
+.. a little helper::
+
+    >>> class normdict(object):
+    ...     def __init__(self, ob):
+    ...         self.ob = ob
+    ...     def __repr__(self):
+    ...         return _normrepr(self.ob)
+    >>> def _normrepr(ob, indent=''):
+    ...     if isinstance(ob, dict):
+    ...         if not ob:
+    ...             return '{}'
+    ...         return '{\n%s%s}' % (
+    ...             ''.join('%s  %r: %s,\n' % (
+    ...                 indent, name, _normrepr(value, indent+'  '))
+    ...                     for name, value in sorted(ob.items())),
+    ...             indent)
+    ...     elif isinstance(ob, list):
+    ...         return '[%s]' % ', '.join(_normrepr(x) for x in ob)
+    ...     else:
+    ...         return repr(ob)
+
+This tests the manifest validator::
+
+    >>> from directory.validator import validate, normalize
+    >>> def testit(manifest):
+    ...     errors = validate(manifest)
+    ...     if not errors:
+    ...         print 'valid'
+    ...     else:
+    ...         for value in errors:
+    ...             print value
+    >>> def norm(manifest):
+    ...     return normdict(normalize(manifest))
+
+Simplest possible manifest::
+
+    >>> testit({'name': 'SimplestPossibleManifest',
+    ...         'default_locale': 'en'})
+    valid
+
+Missing required properties::
+
+    >>> testit({})
+    The name property is required and was not provided
+    >>> testit({'name': 'AManifestBooYah'})
+    valid
+
+Property: name::
+
+    >>> m = {'name': 'SimplestPossibleManifest', 'default_locale': 'en'}
+    >>> testit(m)
+    valid
+    >>> m['name'] = None
+    >>> testit(m)
+    name property must be a string (got null)
+    >>> m['name'] = ""
+    >>> testit(m)
+    name property must not be empty
+    >>> m['name'] = 'X'
+    >>> testit(m)
+    valid
+    >>> m['name'] = "@#%(@$*^)!#*^@$&*@$(%^*@#$&*@$*&"
+    >>> testit(m)
+    valid
+    >>> m['name'] = 'a'*127
+    >>> testit(m)
+    valid
+    >>> m['name'] += 'a'
+    >>> testit(m)
+    name property can only be 127 characters long (got 128 characters)
+
+
+Property: default_locale
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'default_locale': "en",
+    ...     }
+    >>> testit(m)
+    valid
+    >>> m['default_locale'] = ""
+    >>> testit(m)
+    default_locale property must not be empty
+    >>> m['default_locale'] = None
+    >>> testit(m)
+    default_locale property must be a string (got null)
+
+
+Property: description::
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'description': "Well, not the simplest *possible*, really",
+    ...     'default_locale': "en",
+    ...     }
+    >>> testit(m)
+    valid
+    >>> m['description'] = []
+    >>> testit(m)
+    description property must be a string (got [])
+    >>> m['description'] = ""
+    >>> testit(m)
+    description property, if present, must not be empty
+    >>> del m['description']
+    >>> testit(m)
+    valid
+    >>> m['description'] = 'b'*1023
+    >>> testit(m)
+    valid
+    >>> m['description'] += 'b'
+    >>> testit(m)
+    description property can only be 1023 characters long (got 1024 characters)
+
+
+Property: launch_path::
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'description': "Well, not the simplest *possible*, really",
+    ...     'launch_path': "/index.html",
+    ...     'default_locale': "en",
+    ...     }
+    >>> testit(m)
+    valid
+    >>> m['launch_path'] = '../index.html'
+    >>> testit(m)
+    launch_path property is not a proper path (got "../index.html")
+    >>> m['launch_path'] = '/'
+    >>> testit(m)
+    valid
+    >>> m['launch_path'] = "/foo/../index.html"
+    >>> testit(m)
+    valid
+
+
+Property: capabilities
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'capabilities': { "a": True, "b": None, "c": [ ], "d": { }, "e": 1234, "f": None },
+    ...     'default_locale': "en",
+    ...     }
+    >>> testit(m)
+    valid
+    >>> m['capabilities'] = []
+    >>> testit(m)
+    capabilities property must be an object (got [])
+    >>> m['capabilities'] = True
+    >>> testit(m)
+    capabilities property must be an object (got true)
+    >>> m['capabilities'] = {}
+    >>> testit(m)
+    valid
+
+
+Property: icons
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'icons': {
+    ...         '16':  "/images/icon_16.png",
+    ...         '48':  "/images/icon_48.png",
+    ...         '128': "/images/icon_128.png"
+    ...         }
+    ...     }
+    >>> testit(m)
+    valid
+    >>> m['icons'] = { '16': "/foo/../../outta_my_scope.png" }
+    >>> norm(m)
+    {
+      'icons': {
+        '16': '/outta_my_scope.png',
+      },
+      'name': 'SimplestPossibleManifest',
+    }
+    >>> m['icons'] = { }
+    >>> norm(m)
+    {
+      'name': 'SimplestPossibleManifest',
+    }
+    >>> m['icons']["16"] = [ ]
+    >>> testit(m)
+    The icons['16'] property must be a string (got [])
+    >>> m['icons'] = { "bogus_key": "foo.png" }
+    >>> testit(m)
+    The icons['bogus_key'] property should be a numeric pixel size
+
+
+Property: developer
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'developer': {
+    ...         'name': "Mozilla Labs, yay!",
+    ...         'url':  "http://mozillalabs.com"
+    ...         },
+    ...     'default_locale': "en"
+    ...     }
+    >>> testit(m)
+    valid
+    >>> m['developer']['age'] = 7
+    >>> testit(m)
+    The developer object has unknown keys: age
+    >>> m['developer'] = { 'url': None }
+    >>> testit(m)
+    developer.url property must be a string (got null)
+
+
+Property: locales
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'locales': {
+    ...         'bg': { 'developer': { 'name': "Mozilla Labs, екстра!"} }
+    ...         }
+    ...     }
+    >>> testit(m)
+    The locales property requires the presence of the default_locale property
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'developer': {
+    ...         'name': "Mozilla Labs, yay!",
+    ...         'url':  "http://mozillalabs.com"
+    ...         },
+    ...     'default_locale': "en",
+    ...     'locales': {
+    ...         'es': { 'developer': { 'name': "Mozilla Labs, guay!" } },
+    ...         'bg': { 'developer': { 'name': "Mozilla Labs, екстра!"} }
+    ...         }
+    ...     }
+    >>> testit(m)
+    valid
+    >>> m['locales']['bg']['developer']['age'] = 7
+    >>> testit(m)
+    Illegal property locales['bg'].developer.age
+    >>> del m['locales']['bg']['developer']['age']
+    >>> m['locales']['es']['capabilities'] = [ "something_awesome" ]
+    >>> testit(m)
+    Illegal property locales['es'].capabilities
+
+
+Property: installs_allowed_from
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'default_locale': "en",
+    ...     'installs_allowed_from': [
+    ...         "https://appstore.mozillalabs.com",
+    ...         "http://radap.ps:8080/"
+    ...         ]
+    ...     }
+    >>> testit(m)
+    valid
+    >>> m['installs_allowed_from'].append("http://too/long")
+    >>> testit(m)
+    installs_allowed_from[2] ("http://too/long") is not a proper host match string
+    >>> m['installs_allowed_from'] = ["sucky_http://this_url_sucks:8080/"]
+    >>> testit(m)
+    installs_allowed_from[0] ("sucky_http://this_url_sucks:8080/") is not a proper host match string
+    >>> m['installs_allowed_from'] = "http://store.sellling.apps.for.confused.devs.com"
+    >>> testit(m)
+    The installs_allowed_from property must be a list (got "http://store.sellling.apps.for.confused.devs.com")
+    >>> # normalization test
+    >>> m['installs_allowed_from'] = [ "http://no_port.eu:80/", "http://no_slash.ch:8080" ]
+    >>> normalize(m)['installs_allowed_from']
+    ['http://no_port.eu/', 'http://no_slash.ch:8080/']
+
+
+Property: widgets!
+
+    >>> m = {
+    ...     'name': "WidgetyManifest",
+    ...     'widget': {
+    ...         'height': 100,
+    ...         'width': 200,
+    ...         'path': "/mywidget.html"
+    ...         }
+    ...     }
+    >>> testit(m)
+    valid
+    >>> del m['widget']['height'] # height and width are optional
+    >>> del m['widget']['width']
+    >>> testit(m)
+    valid
+    >>> del m['widget']['path'] # path is not required...
+    >>> testit(m)
+    valid
+    >>> m['widget']['path'] = "needsslash.html" # ...and must start with a slash
+    >>> testit(m)
+    The widget.path property is not a valid path (got "needsslash.html")
+    >>> m['widget']['path'] = "/foo/../needsslash.html" # ...but we'll normalize!
+    >>> norm(m)
+    {
+      'name': 'WidgetyManifest',
+      'widget': {
+        'path': '/needsslash.html',
+      },
+    }
+    >>> m['widget']['width'] = "100" # width must be a number...
+    >>> testit(m)
+    The widget.width property must be an integer (got "100")
+    >>> m['widget']['width'] = 7777 # ... must be in range ...
+    >>> testit(m)
+    The widget.width property must be [10-1000] (got 7777)
+    >>> m['widget']['width'] = 100.00 # ... but we'll normalize!
+    >>> norm(m)
+    {
+      'name': 'WidgetyManifest',
+      'widget': {
+        'path': '/needsslash.html',
+        'width': 100,
+      },
+    }
+    >>> m['widget']['height'] = "100" # height must be a number...
+    >>> testit(m)
+    The widget.height property must be an integer (got "100")
+    >>> m['widget']['height'] = 7777 # ... must be in range ...
+    >>> testit(m)
+    The widget.height property must be [10-1000] (got 7777)
+    >>> m['widget']['height'] = 100.00 # ... but we'll normalize!
+    >>> testit(m)
+    valid
+    >>> norm(m)
+    {
+      'name': 'WidgetyManifest',
+      'widget': {
+        'height': 100,
+        'path': '/needsslash.html',
+        'width': 100,
+      },
+    }
+    >>> m['widget']['speshul'] = "very" # we allow props we don't understand
+    >>> testit(m)
+    valid
+    >>> m['widget'] = { } # there are NO required args to widget.  wild.
+    >>> norm(m)
+    {
+      'name': 'WidgetyManifest',
+      'widget': {},
+    }
+
+
+Bogus properties
+
+    >>> m = {
+    ...     'name': "SimplestPossibleManifest",
+    ...     'default_locale': "en",
+    ...     'bogus': "si"
+    ...     }
+    >>> testit(m)
+    Illegal property bogus (value: "si")
+    >>> del m['bogus']
+    >>> m['locales'] = { "en": { "bogus": "Да" } }
+    >>> testit(m)
+    Illegal property locales['en'].bogus
