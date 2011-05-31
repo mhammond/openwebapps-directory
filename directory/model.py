@@ -1,8 +1,8 @@
 """Persistence for applications"""
-from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, UnicodeText, Unicode
+from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, UnicodeText, Unicode, ForeignKey
 from sqlalchemy import and_, or_, not_, desc
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.orm.exc import NoResultFound
 from directory.util import make_slug, get_icon, origin_to_key, json
 from datetime import datetime
@@ -36,11 +36,13 @@ class Application(Base):
     featured_end = Column(DateTime)
     added = Column(DateTime, default=datetime.now)
     last_updated = Column(DateTime, onupdate=datetime.now)
+    services = relationship("AppService", backref="app",
+                           cascade="all, delete, delete-orphan")
 
     def __init__(self, origin, manifest_json, manifest_url, manifest_fetched,
                  name, description, icon_url, keywords=None,
                  featured=False, featured_sort=None, featured_start=None,
-                 featured_end=None):
+                 featured_end=None, services=None):
         self.origin = origin
         self.manifest_json = manifest_json
         self.manifest_url = manifest_url
@@ -50,6 +52,8 @@ class Application(Base):
         self.icon_url = icon_url
         if keywords is not None:
             self.keywords = keywords
+        if services is not None:
+            self.services = services
         self.featured = featured
         self.featured_sort = featured_sort
         self.featured_start = featured_start
@@ -83,6 +87,14 @@ class Application(Base):
         return '<Application %s %s>' % (
             self.id or 'unsaved', self.origin)
 
+    def _services_from_manifest(self, manifest):
+        # services is a list of objects - not clear why it is a list, but
+        # that is what the OWA extension does...
+        services = manifest.get('experimental', {}).get('services', [])
+        for dunno in services:
+            for service, endpoint in dunno.iteritems():
+                yield AppService(self, service, endpoint)
+
     @classmethod
     def from_manifest(cls, manifest, manifest_fetched, manifest_url, origin,
                       session=None):
@@ -100,6 +112,7 @@ class Application(Base):
             obj.keywords = keywords
         else:
             obj.keywords = ['uncategorized']
+        obj.services = list(obj._services_from_manifest(manifest))
         if session is not None:
             session.add(obj)
         Keyword.add_words(obj.keywords, session=session)
@@ -119,6 +132,7 @@ class Application(Base):
         keywords = manifest.get('experimental', {}).get('keywords')
         if keywords:
             self.keywords = keywords
+        self.services = list(self._services_from_manifest(manifest))
         self.set_slug()
         if session:
             session.add(self)
@@ -202,6 +216,17 @@ class Application(Base):
             cls.keywords_denormalized.like(match))
         return q
 
+    @classmethod
+    def search_service(cls, service_name, session=None):
+        if session is None:
+            session = Session()
+        # *sob* - should be able to do this with a direct query on Application
+        # but my sqlalchemy foo failed...
+        q = session.query(AppService).filter(
+                AppService.service == service_name
+            ).all()
+        return [r.app for r in q]
+
 
 class Keyword(Base):
     """Represents available keywords (keywords some application has used)
@@ -264,3 +289,16 @@ class Keyword(Base):
         if session is None:
             this_session.commit()
         return unused
+
+
+class AppService(Base):
+    __tablename__ = 'appservice'
+    app_id = Column(ForeignKey(Application.id), nullable=False,
+                    primary_key=True)
+    service = Column(UnicodeText, nullable=False, primary_key=True)
+    endpoint = Column(UnicodeText, nullable=False)
+
+    def __init__(self, app, service, endpoint):
+        self.app = app
+        self.service = service
+        self.endpoint = endpoint
