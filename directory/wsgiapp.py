@@ -28,6 +28,7 @@ class WSGIApp(object):
     map.connect('keywords', '/keyword/', method='all_keywords')
     map.connect('admin_app', '/app/{origin}/{slug}/admin', method='admin_app')
     map.connect('keyword_admin', '/admin/keywords', method='admin_keywords')
+    map.connect('search_service', '/search_service/{service_name}', method='search_service')
 
     def __init__(self, db, search_paths=None,
                  site_title=None,
@@ -345,6 +346,17 @@ class Handler(object):
     def all_keywords(self):
         keywords = [k.word for k in model.Keyword.all_words()]
         return self.render('all_keywords', keywords=keywords)
+
+    def search_service(self, service_name):
+        result = []
+        for app in model.Application.search_service(service_name):
+            result.append({'name': app.name,
+                           'iconURL': app.icon_url,
+                           'description': app.description,
+                           'manifestURL': app.manifest_url})
+        self.req.response.headers['Content-Type'] = "application/json"
+        self.req.response.headers['Access-Control-Allow-Origin'] = 'resource://openwebapps'
+        return json.dumps(result)
 
     def about(self):
         return self.render('about')
